@@ -4,7 +4,7 @@
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: calculates different times and dates in timezones with respect to daylight saving on basis of utc. Edit your timezones here <a href="templates.php?file=wp-content%2Fplugins%2Ftimezones.txt&submit=Edit+file+%C2%BB">here</a>. (Works for me, maybe not for you!)
-Version: 0.13 (beta)
+Version: 0.20 (beta)
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -29,7 +29,7 @@ Author URI: http://www.neotrinity.at
 add_action('wp_head', 'timezonecalculator_wp_head');
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.13\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.20\" />\n");
 }
 
 /*
@@ -53,7 +53,7 @@ this methods prints all timezone entries of the chosen file
 function getTimeZonesTime() {
 	global $dataFile;
 
-	$timeZonesTime=readFile2Array($dataFile, 6, "TimeZones");
+	$timeZonesTime=readFile2Array($dataFile, 7, "TimeZones");
 
 	//at minimum one correct entry
 	if ($timeZonesTime) {
@@ -68,30 +68,36 @@ function getTimeZonesTime() {
 				echo (getTimeZoneTime(array($timeZoneTime[0],$timeZoneTime[2]),
 							    array($timeZoneTime[1],$timeZoneTime[3]),
 							    $timeZoneTime[4],
-							    $timeZoneTime[5])."\n");
+							    $timeZoneTime[5],$timeZoneTime[6])."\n");
 			}
 
 			else {
-				getErrorMessage("Could not load line ".$counter."! - The offset or the invert parameter are not correct. See the examples for hints.");
+				getErrorMessage("Could not load line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
 			}
 		}
 	}
 }
 
 /*
-checks if the data is matching the defined criteria
+checks if the data matches the defined criteria
 */
 
 function checkData($timeZoneTime) {
 
-	/* inverse-options:
-	-1: no daylight saving ==> use standard time 4 the whole year
-	0: daylight saving time of timezone is equal to server daylight saving time
-	1: invert daylight saving time
+	/* hemisphere-options:
+		daylight saving 4
+     		-  0 ... northern hemisphere
+     		-  1 ... southern hemisphere
+     		- -1 ... no daylight saving at all, eg. japan
 	*/
 
-	$inverse=$timeZoneTime[5];
-	if ($inverse<-1 || $inverse>1) {
+	$hemisphere=$timeZoneTime[5];
+	if ($hemisphere<-1 || $hemisphere>1) {
+		return false;
+	}
+
+	$usTimeZone=$timeZoneTime[6];
+	if ($usTimeZone<-1 || $usTimeZone>1) {
 		return false;
 	}
 
@@ -123,7 +129,7 @@ function readFile2Array($dataFile, $len, $friendlyFileName) {
 	$fileContent=file_get_contents(dirname(__FILE__) . "/". $dataFile);
 	$lines=explode("\n", $fileContent);
 
-	//existing lines loaded in array
+	//existing lines stored in array
 	if ($lines) {
 		$ret=array();
 
@@ -148,7 +154,7 @@ function readFile2Array($dataFile, $len, $friendlyFileName) {
 			}
 		}
 
-		//return result array if there is a least one correct line
+		//return result array if there is at least one correct line
 		if (sizeof($ret)>0) {
 			return $ret;
 		}
@@ -211,34 +217,123 @@ function readFileLine2Array($line, $len) {
 this methods returns the actual timestamp including all relevant data for the chosen timezone for example as list-entry
 */
 
-function getTimeZoneTime($abbrs, $names, $offset, $inverse) {
+function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone) {
 	global $before, $after;
 
 	$ret="<abbr title=\"";
 
-	//is daylightsaving set on server?
-	$daylightsaving=date('I');
+	$nowStdDST=isStdDST();
+	$nowUSDST=isUSDST();
 
-	//reverse daylightsaving, depends on server location & timezone set
-	if ($inverse==1) {
-		if ($daylightsaving==1) {
-			$daylightsaving=0;
+	//as on servers dst might not be activated, daylightsaving is calculated manually
+	$daylightsaving=0;
+
+	//timezone in northern hemisphere
+	if ($hemisphere==0) {
+
+		//in standard-daylightsaving zone?
+		if ($ustimezone==0) {
+			if ($nowStdDST)
+				$daylightsaving=1;
 		}
+
+		//us-daylightsaving zone
 		else {
-
-			$daylightsaving=1;
+			if ($nowUSDST)
+				$daylightsaving=1;
 		}
+
 	}
 
-	//no daylight-saving in this timezone
-	else if ($inverse==-1) {
-		$daylightsaving=0;
+	//timezone in southern hemisphere
+	else if ($hemisphere==1) {
+
+		//in standard-daylightsaving zone?
+		if ($ustimezone==0) {
+			if (!$nowStdDST)
+				$daylightsaving=1;
+		}
+
+		//us-daylightsaving zone
+		else {
+			if (!$nowUSDST)
+				$daylightsaving=1;
+		}
+
 	}
 
 	$ret=$ret.$names[$daylightsaving]."\">".$abbrs[$daylightsaving]."</abbr>: ";
 	$ret=$ret.gmdate('Y-m-d H:i',(time() + 3600 * ($offset + $daylightsaving)));
 
 	return $before.$ret.$after;
+}
+
+/*
+checks if gmt is within European DST
+European DST (since 1996) last Sunday in March to last Sunday in October
+created by Matthew Waygood (www.waygoodstuff.co.uk)
+modified by Bernhard Riedl (www.neotrinity.at)
+*/
+
+function isStdDST() {
+	// UTC time
+	$timestamp = mktime(gmdate("H, i, s, m, d, Y"));
+	$this_year=gmdate("Y", $timestamp);
+
+	// last sunday in march at 1am UTC
+	$last_day_of_march=gmmktime(1,0,0,3,31,$this_year);
+	$last_sunday_of_march=strtotime("-".gmdate("w", $last_day_of_march)." day", $last_day_of_march);
+   
+	// last sunday in october at 1am UTC
+	$last_day_of_october=gmmktime(1,0,0,10,31,$this_year);
+	$last_sunday_of_october=strtotime("-".gmdate("w", $last_day_of_october)." day", $last_day_of_october);
+
+	if( ($timestamp > $last_sunday_of_march) && ($timestamp < $last_sunday_of_october) )
+		return true;
+	else
+		return false;
+}
+
+/*
+checks if gmt is within US DST
+US & Canadian DST second Sunday in March to first Sunday in November
+created by Matthew Waygood (www.waygoodstuff.co.uk)
+modified by Bernhard Riedl (www.neotrinity.at)
+*/
+
+function isUSDST() {
+	// UTC time
+	$timestamp = mktime(gmdate("H, i, s, m, d, Y"));
+	$this_year=gmdate("Y", $timestamp);
+
+	// second sunday in march at 1am UTC
+	$last_day_of_february=gmmktime(1,0,0,2,(28+date("L", $timestamp)),$this_year);
+	$last_sunday_of_february=strtotime("-".gmdate("w", $last_day_of_february)." day", $last_day_of_february);
+	$second_sunday_of_march=mktime(
+		gmdate("H", $last_sunday_of_february),
+		gmdate("i", $last_sunday_of_february),
+		gmdate("s", $last_sunday_of_february),
+		gmdate("m", $last_sunday_of_february),
+		gmdate("d", $last_sunday_of_february)+14,
+		gmdate("Y", $last_sunday_of_february)
+	);
+   
+	// first sunday in november at 1am UTC
+	$last_day_of_october=gmmktime(1,0,0,10,31,$this_year);
+	$last_sunday_of_october=strtotime("-".gmdate("w", $last_day_of_october)." day", $last_day_of_october);
+	$first_sunday_of_november=mktime(
+		gmdate("H", $last_sunday_of_october),
+		gmdate("i", $last_sunday_of_october),
+		gmdate("s", $last_sunday_of_october),
+		gmdate("m", $last_sunday_of_october),
+		gmdate("d", $last_sunday_of_october)+7,
+		gmdate("Y", $last_sunday_of_october)
+	);
+
+	if( ($timestamp > $second_sunday_of_march) && ($timestamp < $first_sunday_of_november) )
+		return true;
+	else
+		return false;
 }
 
 /*
