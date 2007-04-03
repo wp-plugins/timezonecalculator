@@ -50,3 +50,9 @@ calculates different times and dates in timezones with respect to daylight savin
   * [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
 
 5. Drink a beer, smoke a cigarette or celebrate in a way you like!
+
+== Frequently Asked Questions ==
+
+= Why is my timezones.txt file from a version minor 0.20 not working anymore? =
+
+As in the section [installation](http://wordpress.org/extend/plugins/timezonecalculator/installation/) described, there are (mainly) two different timeslots for daylightsaving. - To make your old file working, add the last parameter ** daylight saving in or like us timezone **.
