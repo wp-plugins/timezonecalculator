@@ -56,3 +56,7 @@ calculates different times and dates in timezones with respect to daylight savin
 = Why is my timezones.txt file from a version minor 0.20 not working anymore? =
 
 As in the section [installation](http://wordpress.org/extend/plugins/timezonecalculator/installation/) described, there are (mainly) two different timeslots for daylightsaving. - To make your old file working, add the last parameter **daylight saving in or like us timezone** and copy the whole content into the timezones textarea in the Options/TimeZoneCalculator tab.
+
+== Screenshots ==
+
+1. This screenshot optionspage.png shows the Options/TimeZoneCalculator Tab in the admin menu.
