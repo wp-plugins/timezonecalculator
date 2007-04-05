@@ -3,8 +3,8 @@
 /*
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
-Description: calculates different times and dates in timezones with respect to daylight saving on basis of utc. Edit your timezones here <a href="templates.php?file=wp-content%2Fplugins%2Ftimezones.txt&submit=Edit+file+%C2%BB">here</a>. (Works for me, maybe not for you!)
-Version: 0.20 (beta)
+Description: calculates different times and dates in timezones with respect to daylight saving on basis of utc.
+Version: 0.21 (beta)
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -29,16 +29,12 @@ Author URI: http://www.neotrinity.at
 add_action('wp_head', 'timezonecalculator_wp_head');
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.20\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.21\" />\n");
 }
 
 /*
 environment variables
 */
-
-$dataFile="timezones.txt";
-$before="<li>";
-$after="</li>";
 
 /*
 **********************************************
@@ -51,15 +47,23 @@ this methods prints all timezone entries of the chosen file
 */
 
 function getTimeZonesTime() {
-	global $dataFile;
 
-	$timeZonesTime=readFile2Array($dataFile, 7, "TimeZones");
+	$before_list=stripslashes(get_option('TimeZones_before_List'));
+	$after_list=stripslashes(get_option('TimeZones_after_List'));
+
+	$timeZonesTimeOption=get_option('TimeZones');
 
 	//at minimum one correct entry
-	if ($timeZonesTime) {
+	if ($timeZonesTimeOption) {
 		$counter=0;
 
-		foreach ($timeZonesTime as $timeZoneTime) {
+		echo($before_list);
+
+		$timeZonesTime=split("\n", $timeZonesTimeOption);
+
+		foreach ($timeZonesTime as $timeZoneTimeOption) {
+
+			$timeZoneTime=split(";", $timeZoneTimeOption);
 
 			$counter++;
 
@@ -72,9 +76,12 @@ function getTimeZonesTime() {
 			}
 
 			else {
-				getErrorMessage("Could not load line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
+				getErrorMessage("Could not read line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
 			}
 		}
+
+		echo($after_list);
+
 	}
 }
 
@@ -118,107 +125,12 @@ function checkData($timeZoneTime) {
 }
 
 /*
-reads the input file
-*/
-
-function readFile2Array($dataFile, $len, $friendlyFileName) {
-
-	//get filecontent
-	//$lines = @file(dirname(__FILE__) . "/". $dataFile);
-
-	$fileContent=file_get_contents(dirname(__FILE__) . "/". $dataFile);
-	$lines=explode("\n", $fileContent);
-
-	//existing lines stored in array
-	if ($lines) {
-		$ret=array();
-
-		$counter=0;
-		foreach($lines as $line) {
-
-			//is the line long enough?
-			if (strlen($line)>$len*2) {
-				$counter++;
-				$res=readFileLine2Array($line, $len);
-
-				//correct line, add to result array
-				if ($res) {
-					$ret=array_merge($ret, array($res));
-				}
-
-				//error in attributes
-				else {
-					getErrorMessage("Could not load line ".$counter."! - Some settings are not correct. See the examples for hints.");
-				}
-
-			}
-		}
-
-		//return result array if there is at least one correct line
-		if (sizeof($ret)>0) {
-			return $ret;
-		}
-
-		//no or no correct line
-		else {
-			getErrorMessage("There is nothing to display. - The file may be empty or there may be errors in the timezone entries.");
-			return false;
-		}
-
-	}
-
-	//file not found
-	else {
-		getErrorMessage("Could not find your ".$friendlyFileName." file!");
-		return false;
-	}
-
-	return false;
-
-}
-
-/*
-reads one line of the input file and fulfills some proofs
-*/
-
-function readFileLine2Array($line, $len) {
-
-	//write attributes of each line into array
-	$tokens=explode(";", $line);
-
-	//all attributes set? wrong lines will be ignored; no other checks
-	if (sizeof($tokens)==$len) {
-		$end=false;
-		$tokenCounter=0;
-
-		while (!$end) {
-			//work-around 4 windows-bug \r = end of line
-			$temp=explode("\r", $tokens[$tokenCounter]);
-
-			//length of all tokens > 0
-			if (is_null($temp[0]) ||
-                      strlen($temp[0])<1) {
-				return false;
-			}
-
-			//termination
-			if ($tokenCounter==(sizeof($tokens)-1)) {
-				return $tokens;
-			}
-
-			$tokenCounter++;
-		}
-	}
-
-	return false;
-}
-
-/*
 this methods returns the actual timestamp including all relevant data for the chosen timezone for example as list-entry
 */
 
 function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone) {
-	global $before, $after;
+	$before_tag=stripslashes(get_option('timezones_before_Tag'));
+	$after_tag=stripslashes(get_option('timezones_after_Tag'));
 
 	$ret="<abbr title=\"";
 
@@ -265,7 +177,7 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone) {
 	$ret=$ret.$names[$daylightsaving]."\">".$abbrs[$daylightsaving]."</abbr>: ";
 	$ret=$ret.gmdate('Y-m-d H:i',(time() + 3600 * ($offset + $daylightsaving)));
 
-	return $before.$ret.$after;
+	return $before_tag.$ret.$after_tag;
 }
 
 /*
@@ -341,8 +253,122 @@ display errormessage
 */
 
 function getErrorMessage($msg) {
-	global $before, $after;
-	echo($before."Sorry! ".$msg.$after."\n");
+	$before_tag=stripslashes(get_option('timezones_before_Tag'));
+	$after_tag=stripslashes(get_option('timezones_after_Tag'));
+	echo($before_tag."Sorry! ".$msg.$after_tag);
 }
+
+/*
+add GeneralStats to WordPress Option Page
+*/
+
+function addTimeZoneCalculatorOptionPage() {
+    if (function_exists('add_options_page')) {
+        add_options_page('TimeZoneCalculator', 'TimeZoneCalculator', 8, __FILE__, 'createTimeZoneCalculatorOptionPage');
+    }
+}
+
+/*
+Option Page
+*/
+
+function createTimeZoneCalculatorOptionPage() {
+
+    $csstags=array("TimeZones_before_List", "TimeZones_after_List", "TimeZones_before_Tag", "TimeZones_after_Tag");
+
+    /*
+    configuration changed => store parameters
+    */
+
+    if (isset($_POST['info_update'])) {
+
+        foreach ($csstags as $csstag) {
+            update_option($csstag, $_POST[$csstag]);
+        }
+
+        update_option('TimeZones', $_POST['TimeZones']);
+
+        ?><div class="updated"><p><strong>
+        <?php _e('Configuration changed!')?></strong></p></div>
+     <?php }?>
+
+     <?php
+     /*
+     options form
+     */
+    ?>
+
+     <div class="wrap">
+       <form method="post">
+         <h2>Content</h2>
+
+     		<fieldset>
+
+   		<em>Syntax</em>
+		<ul>
+			<li>abbr "standard";</li>
+			<li>name "standard";</li>
+			<li>abbr daylight saving;</li>
+			<li>name daylight saving;</li>
+			<li>time-offset;</li>
+
+			<li>daylight saving 4;<ul>
+			  	<li>0 ... northern hemisphere</li>
+				<li>1 ... southern hemisphere</li>
+				<li>-1 ... no daylight saving at all, eg. japan</li>
+			</ul></li>
+
+			<li>daylight saving in or like us timezone - The <a target="_blank" href="http://en.wikipedia.org/wiki/European_Summer_Time">European Summer Time</a> lasts between the last Sunday in March and the last Sunday in October. Due to the Energy Bill (HR6 / Energy Policy Act of 2005 or Public Law 109-58), the <a target="_blank" href="http://en.wikipedia.org/wiki/Time_in_the_United_States">daylight saving for the states</a> starts on the second Sunday in March and ends on the first Sunday in November.<ul>
+				<li>0 ... no us time zone</li>
+				<li>1 ... us time zone</li>
+			</ul></li>
+		</ul>
+
+		<em>Infos</em>
+		<ul>
+			<li><a target="_blank" href="http://www.timeanddate.com/library/abbreviations/timezones/">timeanddate.com</a></li>
+			<li><a target="_blank" href="http://en.wikipedia.org/wiki/Timezones">wikipedia.org</a></li>
+		</ul>
+
+		<em>Examples</em>
+		<ul>
+	    		<li>CET;Central European Time;CEST;Central European Summer Time;1;0;0</li>
+	    		<li>EST;Eastern Standard Time;EDT;Eastern Daylight Time;10;1;0</li>
+	    		<li>NZST;New Zealand Standard Time;NZDT;New Zealand Daylight Time;12;1;0</li>
+	    		<li>PST;Pacific Standard Time;PDT;Pacific Daylight Time;-8;0;1</li>
+	    	</ul>
+
+     		</fieldset>
+
+     		<fieldset>
+          	<legend>TimeZones</legend>
+          	<textarea name="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea>
+     		</fieldset>
+
+        <h2>CSS-Tags</h2>
+
+		<?php
+
+     		foreach ($csstags as $csstag) {
+          		echo("<fieldset>");
+            	echo("<legend>");
+            	_e($csstag);
+            	echo("</legend>");
+              	echo("<input type=\"text\" size=\"30\" name=\"".$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($csstag)))."\" />");
+       	   	echo("</fieldset>");
+	      } ?>
+
+        <h2>Preview (call getTimeZonesTime(); wherever you like!)</h2>
+		<?php getTimeZonesTime(); ?>
+
+    <div class="submit">
+      <input type="submit" name="info_update" value="<?php _e('Update options') ?>" /></div>
+    </form>
+    </div>
+
+<?php
+}
+
+add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
 
 ?>

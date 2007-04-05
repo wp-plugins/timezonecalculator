@@ -12,21 +12,18 @@ calculates different times and dates in timezones with respect to daylight savin
 
 calculates different times and dates in timezones with respect to daylight saving on basis of utc. timezone-infos are available at [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/) or at [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
 
+**now full-optionpage-configurable, and as usual easy to integrate**
+
 == Installation ==
 
-1. Put both the timezonecalculator.php and timezones.txt files in your WordPress plugins directory (usually wp-content/plugins).
+1. Put the timezonecalculator.php file in your WordPress plugins directory (usually wp-content/plugins).
 
 2. In the WordPress admin console, go to the Plugins tab, and activate the TimeZoneCalculator plugin.
 
-3. Put this code into your sidebar menu (sidebar.php) or where you want it to appear:
-`<?php getTimeZonesTime(); ?>`
-
-4. Edit the timezones.txt file the way you like
+3. Go to the Options/TimeZoneCalculator and configure the timezones the way you like
 (all data for one timezone in one row, no spaces between ; separator)
 
-  You can use the link in the plugin menu. Editing should be able if you have write access for this file in the plugins directory. If the link doesn't work you can still use the files tab which you find in the manage tab or upload the file via ftp client after changing on your local system.
-
-  syntax 4 the timezones.txt file:
+   syntax 4 the timezones:
   * abbr "standard";
   * name "standard";
   * abbr daylight saving;
@@ -43,11 +40,14 @@ calculates different times and dates in timezones with respect to daylight savin
   examples
   * CET;Central European Time;CEST;Central European Summer Time;1;0;0
   * EST;Eastern Standard Time;EDT;Eastern Daylight Time;10;1;0
+  * NZST;New Zealand Standard Time;NZDT;New Zealand Daylight Time;12;1;0
   * PST;Pacific Standard Time;PDT;Pacific Daylight Time;-8;0;1
 
   timezone-infos are available at
   * [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/)
   * [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
+
+4. Put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to appear.
 
 5. Drink a beer, smoke a cigarette or celebrate in a way you like!
 
@@ -55,4 +55,4 @@ calculates different times and dates in timezones with respect to daylight savin
 
 = Why is my timezones.txt file from a version minor 0.20 not working anymore? =
 
-As in the section [installation](http://wordpress.org/extend/plugins/timezonecalculator/installation/) described, there are (mainly) two different timeslots for daylightsaving. - To make your old file working, add the last parameter **daylight saving in or like us timezone**.
+As in the section [installation](http://wordpress.org/extend/plugins/timezonecalculator/installation/) described, there are (mainly) two different timeslots for daylightsaving. - To make your old file working, add the last parameter **daylight saving in or like us timezone** and copy the whole content into the timezones textarea in the Options/TimeZoneCalculator tab.

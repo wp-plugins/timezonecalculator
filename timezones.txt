@@ -1,4 +1,0 @@
-CET;Central European Time;CEST;Central European Summer Time;1;0;0
-EST;Eastern Standard Time;EDT;Eastern Daylight Time;10;1;0
-NZST;New Zealand Standard Time;NZDT;New Zealand Daylight Time;12;1;0
-PST;Pacific Standard Time;PDT;Pacific Daylight Time;-8;0;1
