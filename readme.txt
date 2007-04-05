@@ -59,4 +59,4 @@ As in the section [installation](http://wordpress.org/extend/plugins/timezonecal
 
 == Screenshots ==
 
-1. The screenshot `optionspage.png` shows the Options/TimeZoneCalculator Tab in the admin menu.
+1. The screenshot shows the Options/TimeZoneCalculator Tab in the admin menu.
