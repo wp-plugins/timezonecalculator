@@ -3,8 +3,8 @@
 /*
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
-Description: calculates different times and dates in timezones with respect to daylight saving on basis of utc.
-Version: 0.21 (beta)
+Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="/wp-admin/options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
+Version: 0.30 (beta)
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -26,15 +26,6 @@ Author URI: http://www.neotrinity.at
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-add_action('wp_head', 'timezonecalculator_wp_head');
-
-function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.21\" />\n");
-}
-
-/*
-environment variables
-*/
 
 /*
 **********************************************
@@ -43,7 +34,71 @@ stop editing here unless you know what you do!
 /*
 
 /*
-this methods prints all timezone entries of the chosen file
+called from init hook
+*/
+
+function timezonecalculator_init() {
+	add_action('wp_head', 'timezonecalculator_wp_head');
+	add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
+}
+
+/*
+called from widget_init hook
+*/
+
+function widget_timezonecalculator_init() {
+	register_sidebar_widget(array('TimeZoneCalculator', 'widgets'), 'widget_timezonecalculator');
+	register_widget_control(array('TimeZoneCalculator', 'widgets'), 'widget_timezonecalculator_control', 300, 100);
+}
+
+/*
+adds metainformation - please leave this for stats!
+*/
+
+function timezonecalculator_wp_head() {
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.30\" />\n");
+}
+
+/*
+widget functions
+*/
+
+function widget_timezonecalculator($args) {
+	extract($args);
+
+	$options = get_option('widget_timezonecalculator');
+	$title = $options['title'];
+
+	echo $before_widget;
+	echo $before_title . htmlentities($title) . $after_title;
+	getTimeZonesTime();
+    	echo $after_widget;
+}
+
+/*
+widget control
+*/
+
+function widget_timezonecalculator_control() {
+
+	// Get our options and see if we're handling a form submission.
+	$options = get_option('widget_timezonecalculator');
+	if ( !is_array($options) )
+		$options = array('title'=>'', 'buttontext'=>__('TimeZoneCalculator', 'widgets'));
+		if ( $_POST['timezonecalculator-submit'] ) {
+			$options['title'] = strip_tags(stripslashes($_POST['timezonecalculator-title']));
+			update_option('widget_timezonecalculator', $options);
+		}
+
+		$title = htmlspecialchars($options['title'], ENT_QUOTES);
+		
+		echo '<p style="text-align:right;"><label for="timezonecalculator-title">' . __('Title:') . ' <input style="width: 200px;" id="timezonecalculator-title" name="timezonecalculator-title" type="text" value="'.$title.'" /></label></p>';
+		echo '<input type="hidden" id="timezonecalculator-submit" name="timezonecalculator-submit" value="1" />';
+		echo '<p style="text-align:left;"><label for="timezonecalculator-options">Find the options <a href="/wp-admin/options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!</label></p>';
+	}
+
+/*
+this methods echos all timezone entries
 */
 
 function getTimeZonesTime() {
@@ -68,7 +123,7 @@ function getTimeZonesTime() {
 			$counter++;
 
 			//data-check ok
-			if (checkData($timeZoneTime)) {
+			if (timezonecalculator_checkData($timeZoneTime)) {
 				echo (getTimeZoneTime(array($timeZoneTime[0],$timeZoneTime[2]),
 							    array($timeZoneTime[1],$timeZoneTime[3]),
 							    $timeZoneTime[4],
@@ -76,7 +131,7 @@ function getTimeZonesTime() {
 			}
 
 			else {
-				getErrorMessage("Could not read line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
+				timezonecalculator_getErrorMessage("Could not read line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
 			}
 		}
 
@@ -89,7 +144,7 @@ function getTimeZonesTime() {
 checks if the data matches the defined criteria
 */
 
-function checkData($timeZoneTime) {
+function timezonecalculator_checkData($timeZoneTime) {
 
 	/* hemisphere-options:
 		daylight saving 4
@@ -134,8 +189,8 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone) {
 
 	$ret="<abbr title=\"";
 
-	$nowStdDST=isStdDST();
-	$nowUSDST=isUSDST();
+	$nowStdDST=timezonecalculator_isStdDST();
+	$nowUSDST=timezonecalculator_isUSDST();
 
 	//as on servers dst might not be activated, daylightsaving is calculated manually
 	$daylightsaving=0;
@@ -187,7 +242,7 @@ created by Matthew Waygood (www.waygoodstuff.co.uk)
 modified by Bernhard Riedl (www.neotrinity.at)
 */
 
-function isStdDST() {
+function timezonecalculator_isStdDST() {
 	// UTC time
 	$timestamp = mktime(gmdate("H, i, s, m, d, Y"));
 	$this_year=gmdate("Y", $timestamp);
@@ -213,7 +268,7 @@ created by Matthew Waygood (www.waygoodstuff.co.uk)
 modified by Bernhard Riedl (www.neotrinity.at)
 */
 
-function isUSDST() {
+function timezonecalculator_isUSDST() {
 	// UTC time
 	$timestamp = mktime(gmdate("H, i, s, m, d, Y"));
 	$this_year=gmdate("Y", $timestamp);
@@ -252,14 +307,14 @@ function isUSDST() {
 display errormessage
 */
 
-function getErrorMessage($msg) {
+function timezonecalculator_getErrorMessage($msg) {
 	$before_tag=stripslashes(get_option('timezones_before_Tag'));
 	$after_tag=stripslashes(get_option('timezones_after_Tag'));
 	echo($before_tag."Sorry! ".$msg.$after_tag);
 }
 
 /*
-add GeneralStats to WordPress Option Page
+add TimeZoneCalculator to WordPress Option Page
 */
 
 function addTimeZoneCalculatorOptionPage() {
@@ -369,6 +424,7 @@ function createTimeZoneCalculatorOptionPage() {
 <?php
 }
 
-add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
+add_action('init', 'timezonecalculator_init');
+add_action('widgets_init', 'widget_timezonecalculator_init');
 
 ?>

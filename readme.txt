@@ -6,13 +6,13 @@ Requires at least: 1.5
 Tested up to: 2.1.3
 Stable tag: trunk
 
-calculates different times and dates in timezones with respect to daylight saving on basis of utc.
+Calculates different times and dates in timezones with respect to daylight saving on basis of utc.
 
 == Description ==
 
-calculates different times and dates in timezones with respect to daylight saving on basis of utc. timezone-infos are available at [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/) or at [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
+Calculates different times and dates in timezones with respect to daylight saving on basis of utc. timezone-infos are available at [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/) or at [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
 
-**now full-optionpage-configurable, and as usual easy to integrate**
+**now fully-optionpage-configurable, and as usual easy to integrate (ships with widget functionality)**
 
 == Installation ==
 
@@ -47,7 +47,7 @@ calculates different times and dates in timezones with respect to daylight savin
   * [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/)
   * [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
 
-4. Put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to appear.
+4. If you got [widget functionality](http://wordpress.org/extend/plugins/widgets/), just drag and drop TimeZoneCalculator on your dynamic sidebar in the presentation menu and name it appropriate. Otherwise, put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to appear.
 
 5. Drink a beer, smoke a cigarette or celebrate in a way you like!
 
