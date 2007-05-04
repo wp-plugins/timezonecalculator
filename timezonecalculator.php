@@ -4,7 +4,7 @@
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="/wp-admin/options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
-Version: 0.30 (beta)
+Version: 0.31 (beta)
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -56,7 +56,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.30\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.31\" />\n");
 }
 
 /*
@@ -330,6 +330,7 @@ Option Page
 function createTimeZoneCalculatorOptionPage() {
 
     $csstags=array("TimeZones_before_List", "TimeZones_after_List", "TimeZones_before_Tag", "TimeZones_after_Tag");
+    $csstags_defaults=array("<ul>", "</ul>", "<li>", "</li>");
 
     /*
     configuration changed => store parameters
@@ -345,7 +346,20 @@ function createTimeZoneCalculatorOptionPage() {
 
         ?><div class="updated"><p><strong>
         <?php _e('Configuration changed!')?></strong></p></div>
-     <?php }?>
+      <?php }
+
+      elseif (isset($_POST['load_default'])) {
+
+        for ($i = 0; $i < sizeof($csstags); $i++) {
+            update_option($csstags[$i], $csstags_defaults[$i]);
+        }
+
+        update_option('TimeZones', 'UTC;Coordinated Universal Time;UTC;Coordinated Universal Time;0;-1;0');
+
+        ?><div class="updated"><p><strong>
+        <?php _e('Defaults loaded!')?></strong></p></div>
+
+      <?php } ?>
 
      <?php
      /*
@@ -417,7 +431,10 @@ function createTimeZoneCalculatorOptionPage() {
 		<?php getTimeZonesTime(); ?>
 
     <div class="submit">
-      <input type="submit" name="info_update" value="<?php _e('Update options') ?>" /></div>
+      <input type="submit" name="info_update" value="<?php _e('Update options') ?>" />
+      <input type="submit" name="load_default" value="<?php _e('Load defaults') ?>" />
+    </div>
+
     </form>
     </div>
 

@@ -21,7 +21,7 @@ Calculates different times and dates in timezones with respect to daylight savin
 2. In the WordPress admin console, go to the Plugins tab, and activate the TimeZoneCalculator plugin.
 
 3. Go to the Options/TimeZoneCalculator and configure the timezones the way you like
-(all data for one timezone in one row, no spaces between ; separator). Feel free to play around and see the result in the section preview at the bottom of the options page.
+(all data for one timezone in one row, no spaces between ; separator). Feel free to play around and see the result in the section preview at the bottom of the options page. If you are new to TimeZoneCalculator, it's a good start to load the defaults by clicking the button in the right lower corner.
 
    syntax 4 the timezones:
   * abbr "standard";
