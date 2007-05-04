@@ -1,7 +1,7 @@
 === TimeZoneCalculator ===
 Contributors: neoxx
 Donate link: http://www.neotrinity.at/projects/
-Tags: timezone, daylightsaving, world clock, date
+Tags: timezone, daylightsaving, world clock, date, widget
 Requires at least: 1.5
 Tested up to: 2.1.3
 Stable tag: trunk
