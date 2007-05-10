@@ -16,7 +16,7 @@ Calculates different times and dates in timezones with respect to daylight savin
 
 == Installation ==
 
-1. Put the timezonecalculator.php file in your WordPress plugins directory (usually wp-content/plugins).
+1. Copy the timezonecalculator directory in your WordPress plugins directory (usually wp-content/plugins).
 
 2. In the WordPress admin console, go to the Plugins tab, and activate the TimeZoneCalculator plugin.
 

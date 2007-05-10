@@ -3,8 +3,8 @@
 /*
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
-Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="/wp-admin/options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
-Version: 0.31 (beta)
+Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
+Version: 0.32 (beta)
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -56,7 +56,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.31\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.32\" />\n");
 }
 
 /*
@@ -94,7 +94,7 @@ function widget_timezonecalculator_control() {
 		
 		echo '<p style="text-align:right;"><label for="timezonecalculator-title">' . __('Title:') . ' <input style="width: 200px;" id="timezonecalculator-title" name="timezonecalculator-title" type="text" value="'.$title.'" /></label></p>';
 		echo '<input type="hidden" id="timezonecalculator-submit" name="timezonecalculator-submit" value="1" />';
-		echo '<p style="text-align:left;"><label for="timezonecalculator-options">Find the options <a href="/wp-admin/options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!</label></p>';
+		echo '<p style="text-align:left;"><label for="timezonecalculator-options">Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!</label></p>';
 	}
 
 /*
