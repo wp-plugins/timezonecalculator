@@ -4,7 +4,7 @@
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
-Version: 0.32 (beta)
+Version: 0.40
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -43,6 +43,61 @@ function timezonecalculator_init() {
 }
 
 /*
+loads the necessary java-scripts,
+which are all included in wordpress >= 2.1
+for the admin-page
+*/
+
+function timezones_admin_print_scripts() {
+	global $wp_version;
+	if (version_compare($wp_version, "2.1", ">="))
+		wp_enqueue_script('scriptaculous-effects');
+}
+
+/*
+loads the necessary css-styles
+for the admin-page
+*/
+
+function timezones_admin_head() {
+	global $wp_version;
+	if (version_compare($wp_version, "2.1", ">=")) {
+?>
+
+     <style type="text/css">
+
+      #timezones_create, #timezones_loadExample {
+		margin: 10px 5px 10px 0px;
+		background: url( images/fade-butt.png );
+		border: 3px double #999;
+		border-left-color: #ccc;
+		border-top-color: #ccc;
+		color: #333;
+		padding: 0.25em;
+		width: 150px;
+		text-align: center;
+		float:left;
+      }
+
+	#timezones_create:active, #timezones_loadExample:active {
+		background: #f4f4f4;
+		border: 3px double #ccc;
+		border-left-color: #999;
+		border-top-color: #999;
+	}
+
+	td.timezones_newentry_label {
+		width: 200px;
+	}
+
+      </style>
+
+<?php
+	}
+
+}
+
+/*
 called from widget_init hook
 */
 
@@ -56,7 +111,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.32\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.40\" />\n");
 }
 
 /*
@@ -103,8 +158,14 @@ this methods echos all timezone entries
 
 function getTimeZonesTime() {
 
-	$before_list=stripslashes(get_option('TimeZones_before_List'));
-	$after_list=stripslashes(get_option('TimeZones_after_List'));
+	$fieldsPre="timezones_";
+
+	$before_list=stripslashes(get_option($fieldsPre.'before_List'));
+	$after_list=stripslashes(get_option($fieldsPre.'after_List'));
+
+	$timeFormat=stripslashes(get_option($fieldsPre.'Time_Format'));
+	if (strlen($timeFormat)<1)
+		$timeFormat="Y-m-d H:i";
 
 	$timeZonesTimeOption=get_option('TimeZones');
 
@@ -114,11 +175,11 @@ function getTimeZonesTime() {
 
 		echo($before_list);
 
-		$timeZonesTime=split("\n", $timeZonesTimeOption);
+		$timeZonesTime=explode("\n", $timeZonesTimeOption);
 
 		foreach ($timeZonesTime as $timeZoneTimeOption) {
 
-			$timeZoneTime=split(";", $timeZoneTimeOption);
+			$timeZoneTime=explode(";", $timeZoneTimeOption);
 
 			$counter++;
 
@@ -127,7 +188,7 @@ function getTimeZonesTime() {
 				echo (getTimeZoneTime(array($timeZoneTime[0],$timeZoneTime[2]),
 							    array($timeZoneTime[1],$timeZoneTime[3]),
 							    $timeZoneTime[4],
-							    $timeZoneTime[5],$timeZoneTime[6])."\n");
+							    $timeZoneTime[5],$timeZoneTime[6],$timeFormat)."\n");
 			}
 
 			else {
@@ -183,11 +244,10 @@ function timezonecalculator_checkData($timeZoneTime) {
 this methods returns the actual timestamp including all relevant data for the chosen timezone for example as list-entry
 */
 
-function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone) {
-	$before_tag=stripslashes(get_option('timezones_before_Tag'));
-	$after_tag=stripslashes(get_option('timezones_after_Tag'));
-
-	$ret="<abbr title=\"";
+function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone, $timeFormat) {
+	$fieldsPre="timezones_";
+	$before_tag=stripslashes(get_option($fieldsPre.'before_Tag'));
+	$after_tag=stripslashes(get_option($fieldsPre.'after_Tag'));
 
 	$nowStdDST=timezonecalculator_isStdDST();
 	$nowUSDST=timezonecalculator_isUSDST();
@@ -229,8 +289,27 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone) {
 
 	}
 
-	$ret=$ret.$names[$daylightsaving]."\">".$abbrs[$daylightsaving]."</abbr>: ";
-	$ret=$ret.gmdate('Y-m-d H:i',(time() + 3600 * ($offset + $daylightsaving)));
+	//first the name (optional)
+	$abbr=$abbrs[$daylightsaving];
+	if (strlen($abbr)>0) {
+
+		//and additionally a mouse-over tooltiptext
+		$name=$names[$daylightsaving];
+		if (strlen($name)>0)
+			$ret="<abbr title=\"".$name."\">".$abbr."</abbr>";
+		else
+			$ret=$abbr;
+
+		$ret.=": ";
+
+	}
+
+	//display only the time
+	else {
+		$ret="";
+	}
+
+	$ret.=gmdate($timeFormat,(time() + 3600 * ($offset + $daylightsaving)));
 
 	return $before_tag.$ret.$after_tag;
 }
@@ -308,8 +387,9 @@ display errormessage
 */
 
 function timezonecalculator_getErrorMessage($msg) {
-	$before_tag=stripslashes(get_option('timezones_before_Tag'));
-	$after_tag=stripslashes(get_option('timezones_after_Tag'));
+	$fieldsPre="timezones_";
+	$before_tag=stripslashes(get_option($fieldsPre.'before_Tag'));
+	$after_tag=stripslashes(get_option($fieldsPre.'after_Tag'));
 	echo($before_tag."Sorry! ".$msg.$after_tag);
 }
 
@@ -319,7 +399,9 @@ add TimeZoneCalculator to WordPress Option Page
 
 function addTimeZoneCalculatorOptionPage() {
     if (function_exists('add_options_page')) {
-        add_options_page('TimeZoneCalculator', 'TimeZoneCalculator', 8, __FILE__, 'createTimeZoneCalculatorOptionPage');
+        $page=add_options_page('TimeZoneCalculator', 'TimeZoneCalculator', 8, __FILE__, 'createTimeZoneCalculatorOptionPage');
+        add_action('admin_print_scripts-'.$page, 'timezones_admin_print_scripts');
+        add_action('admin_head-'.$page, 'timezones_admin_head');
     }
 }
 
@@ -329,8 +411,9 @@ Option Page
 
 function createTimeZoneCalculatorOptionPage() {
 
-    $csstags=array("TimeZones_before_List", "TimeZones_after_List", "TimeZones_before_Tag", "TimeZones_after_Tag");
-    $csstags_defaults=array("<ul>", "</ul>", "<li>", "</li>");
+    $fieldsPre="timezones_";
+    $csstags=array("before_List", "after_List", "before_Tag", "after_Tag", "Time_Format");
+    $csstags_defaults=array("<ul>", "</ul>", "<li>", "</li>", "Y-m-d H:i");
 
     /*
     configuration changed => store parameters
@@ -339,7 +422,7 @@ function createTimeZoneCalculatorOptionPage() {
     if (isset($_POST['info_update'])) {
 
         foreach ($csstags as $csstag) {
-            update_option($csstag, $_POST[$csstag]);
+            update_option($fieldsPre.$csstag, $_POST[$fieldsPre.$csstag]);
         }
 
         update_option('TimeZones', $_POST['TimeZones']);
@@ -351,7 +434,7 @@ function createTimeZoneCalculatorOptionPage() {
       elseif (isset($_POST['load_default'])) {
 
         for ($i = 0; $i < sizeof($csstags); $i++) {
-            update_option($csstags[$i], $csstags_defaults[$i]);
+            update_option($fieldsPre.$csstags[$i], $csstags_defaults[$i]);
         }
 
         update_option('TimeZones', 'UTC;Coordinated Universal Time;UTC;Coordinated Universal Time;0;-1;0');
@@ -369,9 +452,78 @@ function createTimeZoneCalculatorOptionPage() {
 
      <div class="wrap">
        <form method="post">
-         <h2>Content</h2>
 
-     		<fieldset>
+    <div class="submit">
+      <input type="submit" name="info_update" value="<?php _e('Update options') ?>" />
+      <input type="submit" name="load_default" value="<?php _e('Load defaults') ?>" />
+    </div>
+
+    <?php
+	global $wp_version;
+	if (version_compare($wp_version, "2.1", ">=")) { ?>
+
+         <h2>Create new Entry</h2>
+
+     <fieldset>
+        <legend>You can add new entries by filling out the fields below.</legend>
+        <legend>Don't forget to click <i>Insert new TimeZone</i> to append the entry and <i>Update options</i> after you're finished.<br /><br /></legend>
+     </fieldset>
+
+     <?php
+	$timezones_newentry="timezones_newentry_";
+	$timezones_newentry_label="label";
+
+	$newentryFields=array("abbr_standard", "name_standard", "abbr_daylightsaving", "name_daylightsaving");
+	$newentryFieldsLength=array(10,50,10,50);
+     ?>
+
+     <fieldset><table style="border: 0; width:100%" id="<?php echo($timezones_newentry); ?>" name="<?php echo($timezones_newentry); ?>">
+
+     <?php
+
+        for ($i = 0; $i < sizeof($newentryFields); $i++) {
+      	echo("<tr>");
+        	echo("<td class=\"".$timezones_newentry.$timezones_newentry_label."\"><label for=\"".$timezones_newentry.$newentryFields[$i]."\">".$newentryFields[$i]."</label></td>");
+        	echo("<td><input name=\"".$timezones_newentry.$newentryFields[$i]."\" id=\"".$timezones_newentry.$newentryFields[$i]."\" type=\"text\" size=\"".$newentryFieldsLength[$i]."\" maxlength=\"".$newentryFieldsLength[$i]."\" /></td>");
+      	echo ("</tr>");
+	}
+	?>
+
+     <tr>
+        <td class="<?php echo($timezones_newentry); ?><?php echo($timezones_newentry_label); ?>"><label for="<?php echo($timezones_newentry); ?>offset">offset</label></td>
+        <td><input onBlur="timezones_checkNumeric(this,-12.5,12.5,'','.','-',true);" name="<?php echo($timezones_newentry); ?>offset" id="<?php echo($timezones_newentry); ?>offset" type="text" size="5" maxlength="5" /></td>
+     </tr>
+
+     <tr>
+        <td class="<?php echo($timezones_newentry); ?><?php echo($timezones_newentry_label); ?>"><label for="<?php echo($timezones_newentry); ?>daylight_saving_for">daylight_saving_for</label></td>
+	  <td><select name="<?php echo($timezones_newentry); ?>daylight_saving_for" id="<?php echo($timezones_newentry); ?>daylight_saving_for" style="size:1">
+        <option value="0">northern hemisphere</option>
+        <option value="1">southern hemisphere</option>
+        <option value="-1">no daylight saving at all, eg. japan</option>
+        </select></td>
+     </tr>
+
+     <tr>
+        <td class="<?php echo($timezones_newentry); ?><?php echo($timezones_newentry_label); ?>"><label for="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone">daylight_saving_for_us_zone</label></td>
+        <td><input type="checkbox" name="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone" id="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone" checked="checked" /></td>
+     </tr>
+
+     </table></fieldset>
+
+     <fieldset>
+	  <legend style="display:none; color:#14568a" id="<?php echo($timezones_newentry); ?>SuccessLabel" name="<?php echo($timezones_newentry); ?>SuccessLabel"><br /><br /><i>New TimeZone appended!</i></legend>
+     </fieldset>
+
+        <fieldset><div id="timezones_create">Insert new TimeZone</div>
+        <div id="timezones_loadExample">Load an Example</div></fieldset>
+
+	<br style="clear:both" /><br />
+
+<?php } ?>
+
+           <h2>Content</h2>
+
+   		<fieldset>
 
    		<em>Syntax</em>
 		<ul>
@@ -410,8 +562,8 @@ function createTimeZoneCalculatorOptionPage() {
      		</fieldset>
 
      		<fieldset>
-          	<legend>TimeZones</legend>
-          	<textarea name="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea>
+          	<legend><label for="TimeZones">TimeZones</label></legend>
+          	<textarea name="TimeZones" id="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea>
      		</fieldset>
 
         <h2>CSS-Tags</h2>
@@ -420,15 +572,22 @@ function createTimeZoneCalculatorOptionPage() {
 
      		foreach ($csstags as $csstag) {
           		echo("<fieldset>");
-            	echo("<legend>");
+            	echo("<legend><label for=\"".$fieldsPre.$csstag."\">");
             	_e($csstag);
-            	echo("</legend>");
-              	echo("<input type=\"text\" size=\"30\" name=\"".$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($csstag)))."\" />");
+            	echo("</label></legend>");
+              	echo("<input type=\"text\" size=\"30\" name=\"".$fieldsPre.$csstag."\" id=\"".$fieldsPre.$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($fieldsPre.$csstag)))."\" />");
        	   	echo("</fieldset>");
 	      } ?>
 
+	  <fieldset>
+	  <legend>You can optionally customize the Time_Format by using standard PHP syntax.</legend>
+	  <legend>default: yyyy-mm-dd hh:mm which in PHP looks like Y-m-d H:i</legend>
+        <legend>For details please refer to the WordPress <a href="http://codex.wordpress.org/Formatting_Date_and_Time">
+	  Documentation on date and time formatting</a>.</legend>
+        </fieldset>
+
         <h2>Preview (call getTimeZonesTime(); wherever you like!)</h2>
-		<?php getTimeZonesTime(); ?>
+		<?php getTimeZonesTime(); ?><br /><br />
 
     <div class="submit">
       <input type="submit" name="info_update" value="<?php _e('Update options') ?>" />
@@ -438,7 +597,208 @@ function createTimeZoneCalculatorOptionPage() {
     </form>
     </div>
 
+    <?php
+	global $wp_version;
+	if (version_compare($wp_version, "2.1", ">=")) { ?>
+
+       <script type="text/javascript" language="javascript">
+
+	 /*
+	 converts a boolean to 0 (false) or 1 (true)
+	 */
+
+	 function timezones_convertBoolean2Int(bol) {
+		if (bol==true) return 1;
+		else return 0;
+	 }
+
+	 /*
+	 checks if a field is null or empty
+	 */
+
+	 function timezones_IsEmpty(aTextField) {
+		if ((aTextField.value.length==0) ||
+		(aTextField.value==null)) {
+			return true;
+   		}
+		else {
+			return false;
+		}
+	 }
+
+	/*
+	original source from Nannette Thacker
+	taken from http://www.shiningstar.net/
+	*/
+	
+	function timezones_checkNumeric(objName,minval,maxval,comma,period,hyphen,message) {
+		var numberfield = objName;
+
+		if (timezones_chkNumeric(objName,minval,maxval,comma,period,hyphen,message) == false) {
+			return false;
+		}
+
+		else {
+			return true;
+		}
+	}
+
+	// only allow 0-9 be entered, plus any values passed
+	// (can be in any order, and don't have to be comma, period, or hyphen)
+	// if all numbers allow commas, periods, hyphens or whatever,
+	// just hard code it here and take out the passed parameters
+
+	function timezones_chkNumeric(objName,minval,maxval,comma,period,hyphen,message) {
+
+		var checkOK = "0123456789" + comma + period + hyphen;
+		var checkStr = objName;
+		var allValid = true;
+		var decPoints = 0;
+		var allNum = "";
+
+		for (i = 0;  i < checkStr.value.length;  i++) {
+			ch = checkStr.value.charAt(i);
+
+			for (j = 0;  j < checkOK.length;  j++)
+			if (ch == checkOK.charAt(j))
+			break;
+
+			if (j == checkOK.length) {
+				allValid = false;
+				break;
+			}
+
+			if (ch != ",")
+				allNum += ch;
+		}
+
+		if (!allValid) {	
+			if (message==true) {
+				alertsay = "Please enter only these values \""
+				alertsay = alertsay + checkOK + "\" in the \"" + checkStr.name + "\" field."
+				alert(alertsay);
+			}
+
+			return (false);
+		}
+
+		// set the minimum and maximum
+		var chkVal = allNum;
+		var prsVal = parseInt(allNum);
+
+		if (minval != "" && maxval != "") if (!(prsVal >= minval && prsVal <= maxval)) {
+			if (message==true) {
+				alertsay = "Please enter a value greater than or "
+				alertsay = alertsay + "equal to \"" + minval + "\" and less than or "
+				alertsay = alertsay + "equal to \"" + maxval + "\" in the \"" + checkStr.name + "\" field."
+				alert(alertsay);
+			}
+			return (false);
+		}
+	}
+
+	 /*
+	 append created entry into textarea
+	 */
+
+	 function timezones_appendEntry() {
+
+		var timezones_newentry="timezones_newentry_";
+
+		document.getElementsByName(timezones_newentry+'SuccessLabel')[0].style.display='none';
+
+		var errormsg="";
+
+		//check for name empty fields
+
+		if (timezones_IsEmpty(document.getElementsByName(timezones_newentry+'abbr_standard')[0]) &&
+		    !timezones_IsEmpty(document.getElementsByName(timezones_newentry+'name_standard')[0]) ) {
+			errormsg+="\n - name standard will not be displayed, because abbr standard is empty";
+		}
+
+		if (timezones_IsEmpty(document.getElementsByName(timezones_newentry+'abbr_daylightsaving')[0]) &&
+		    !timezones_IsEmpty(document.getElementsByName(timezones_newentry+'name_daylightsaving')[0]) ) {
+			errormsg+="\n - name daylightsaving will not be displayed, because abbr daylightsaving is empty";
+		}
+
+		/*
+		offset entered?
+		*/
+
+		if (timezones_IsEmpty(document.getElementsByName(timezones_newentry+'offset')[0]) ) {
+			errormsg+="\n - offset empty";
+		}
+
+		/*
+		if offset entered, check if numeric
+		*/
+
+		else {
+			if (!timezones_checkNumeric(document.getElementsByName(timezones_newentry+'offset')[0],-12.5,12.5,'','.','-',false) ) {
+				errormsg+="\n - offset not numeric or not between -12.5 and 12.5";
+			}
+		}
+
+		if (errormsg.length==0) {		
+
+			var timezones_newentry_abbr_standard= document.getElementsByName(timezones_newentry+'abbr_standard')[0].value;
+			var timezones_newentry_name_standard= document.getElementsByName(timezones_newentry+'name_standard')[0].value;
+			var timezones_newentry_abbr_daylightsaving= document.getElementsByName(timezones_newentry+'abbr_daylightsaving')[0].value;
+			var timezones_newentry_name_daylightsaving= document.getElementsByName(timezones_newentry+'name_daylightsaving')[0].value;
+			var timezones_newentry_offset= document.getElementsByName(timezones_newentry+'offset')[0].value;
+			var timezones_newentry_daylight_saving_for= document.getElementsByName(timezones_newentry+'daylight_saving_for')[0].options[ document.getElementsByName(timezones_newentry+'daylight_saving_for')[0].selectedIndex ].value;
+			var timezones_newentry_daylight_saving_for_us_zone= timezones_convertBoolean2Int(document.getElementsByName(timezones_newentry+'daylight_saving_for_us_zone')[0].checked);
+
+			var ret=timezones_newentry_abbr_standard+";"+
+				timezones_newentry_name_standard+";"+
+				timezones_newentry_abbr_daylightsaving+";"+
+				timezones_newentry_name_daylightsaving+";"+
+				timezones_newentry_offset+";"+
+				timezones_newentry_daylight_saving_for+";"+
+				timezones_newentry_daylight_saving_for_us_zone;
+
+			var oldValue=document.getElementsByName('TimeZones')[0].value;
+			document.getElementsByName('TimeZones')[0].value=oldValue+"\n"+ret;
+
+			new Effect.Highlight(document.getElementsByName(timezones_newentry)[0]);
+			new Effect.Appear(document.getElementsByName(timezones_newentry+'SuccessLabel')[0]);
+		}
+
+		else {
+			new Effect.Highlight(document.getElementsByName(timezones_newentry)[0],{startcolor:'#FF0000'});
+			alert('The following error(s) occured:'+errormsg);
+		}
+
+	 }
+
+	 /*
+	 load a sample entry
+	 */
+
+	 function timezones_loadExample() {
+		var timezones_newentry="timezones_newentry_";
+
+		document.getElementsByName(timezones_newentry+'SuccessLabel')[0].style.display='none';
+
+		var fields = ["abbr_standard", "name_standard", "abbr_daylightsaving", "name_daylightsaving", "offset"];
+		var example = ["CET", "Central European Time", "CEST", "Central European Summer Time", "1"];
+
+		for (var i = 0; i < fields.length; i++) {
+			document.getElementsByName(timezones_newentry+fields[i])[0].value=example[i];
+		}
+
+		document.getElementsByName(timezones_newentry+'daylight_saving_for')[0].selectedIndex=0;
+		document.getElementsByName(timezones_newentry+'daylight_saving_for_us_zone')[0].checked=false;
+
+	 }
+
+       Event.observe('timezones_create', 'click', function(e){ timezones_appendEntry(); });
+       Event.observe('timezones_loadExample', 'click', function(e){ timezones_loadExample(); });
+
+       </script>
+
 <?php
+	}
 }
 
 add_action('init', 'timezonecalculator_init');
