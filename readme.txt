@@ -49,7 +49,7 @@ Calculates different times and dates in timezones with respect to daylight savin
 
 4. If you got [widget functionality](http://wordpress.org/extend/plugins/widgets/), just drag and drop TimeZoneCalculator on your dynamic sidebar in the presentation menu and name it appropriate. Otherwise, put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to appear.
 
-5. Drink a beer, smoke a cigarette or celebrate in a way you like!
+5. Drink a beer, smoke a cigarette or celebrate in a way you like! (and maybe you want to add a link to [http://www.neotrinity.at/projects/](http://www.neotrinity.at/projects/))
 
 == Frequently Asked Questions ==
 

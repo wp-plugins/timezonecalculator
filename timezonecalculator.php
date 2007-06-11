@@ -4,7 +4,7 @@
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
-Version: 0.40
+Version: 0.41
 Author: Bernhard Riedl
 Author URI: http://www.neotrinity.at
 */
@@ -111,7 +111,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.40\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.41\" />\n");
 }
 
 /*
@@ -466,7 +466,10 @@ function createTimeZoneCalculatorOptionPage() {
 
      <fieldset>
         <legend>You can add new entries by filling out the fields below.</legend>
-        <legend>Don't forget to click <i>Insert new TimeZone</i> to append the entry and <i>Update options</i> after you're finished.<br /><br /></legend>
+        <legend>Don't forget to click <em>Insert new TimeZone</em> to append the entry and <em>Update options</em> after you're finished.</legend>
+        <legend>New Entries will show up in the <a href="#<?php echo($fieldsPre); ?>TimeZones">TextBox TimeZones</a>, <a href="#<?php echo($fieldsPre); ?>Content">Section Content</a>.</legend>
+        <legend>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be loaded via the <em>Load defaults</em> button)</legend>
+        <legend>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).<br /><br /></legend>
      </fieldset>
 
      <?php
@@ -511,7 +514,7 @@ function createTimeZoneCalculatorOptionPage() {
      </table></fieldset>
 
      <fieldset>
-	  <legend style="display:none; color:#14568a" id="<?php echo($timezones_newentry); ?>SuccessLabel" name="<?php echo($timezones_newentry); ?>SuccessLabel"><br /><br /><i>New TimeZone appended!</i></legend>
+	  <legend style="display:none; color:#14568a" id="<?php echo($timezones_newentry); ?>SuccessLabel" name="<?php echo($timezones_newentry); ?>SuccessLabel"><br /><br /><em>New TimeZone appended!</em></legend>
      </fieldset>
 
         <fieldset><div id="timezones_create">Insert new TimeZone</div>
@@ -521,10 +524,15 @@ function createTimeZoneCalculatorOptionPage() {
 
 <?php } ?>
 
-           <h2>Content</h2>
+            <a name="<?php echo($fieldsPre); ?>Content"></a><h2>Content</h2>
 
    		<fieldset>
+        <legend>In this section you can edit your TimeZones. - Please stick to the syntax stated below.</legend>
+        <legend>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be loaded via the <em>Load defaults</em> button)</legend>
+        <legend>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).<br /><br /></legend>
+   		</fieldset>
 
+   		<fieldset>
    		<em>Syntax</em>
 		<ul>
 			<li>abbr "standard";</li>
@@ -561,12 +569,12 @@ function createTimeZoneCalculatorOptionPage() {
 
      		</fieldset>
 
-     		<fieldset>
+     		<a name="<?php echo($fieldsPre); ?>TimeZones"></a><fieldset>
           	<legend><label for="TimeZones">TimeZones</label></legend>
           	<textarea name="TimeZones" id="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea>
      		</fieldset>
 
-        <h2>CSS-Tags</h2>
+            <a name="<?php echo($fieldsPre); ?>CSS_Tags"></a><h2>CSS-Tags</h2>
 
 		<?php
 
@@ -586,7 +594,7 @@ function createTimeZoneCalculatorOptionPage() {
 	  Documentation on date and time formatting</a>.</legend>
         </fieldset>
 
-        <h2>Preview (call getTimeZonesTime(); wherever you like!)</h2>
+        <a name="<?php echo($fieldsPre); ?>Preview"></a><h2>Preview (call getTimeZonesTime(); wherever you like!)</h2>
 		<?php getTimeZonesTime(); ?><br /><br />
 
     <div class="submit">
@@ -760,7 +768,7 @@ function createTimeZoneCalculatorOptionPage() {
 			var oldValue=document.getElementsByName('TimeZones')[0].value;
 			document.getElementsByName('TimeZones')[0].value=oldValue+"\n"+ret;
 
-			new Effect.Highlight(document.getElementsByName(timezones_newentry)[0]);
+			new Effect.Highlight(document.getElementsByName(timezones_newentry)[0],{startcolor:'#30df8b'});
 			new Effect.Appear(document.getElementsByName(timezones_newentry+'SuccessLabel')[0]);
 		}
 
