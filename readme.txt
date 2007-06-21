@@ -22,29 +22,7 @@ Calculates different times and dates in timezones with respect to daylight savin
 
 2. In the WordPress admin console, go to the Plugins tab, and activate the TimeZoneCalculator plugin.
 
-3. Go to the Options/TimeZoneCalculator and configure the timezones the way you like by using the AJAX functionality in the Drag and Drop section or customize in the static section (all data for one timezone in one row, no spaces between ; separator). Feel free to play around and see the result in the section preview at the bottom of the options page.
-
-If you are new to TimeZoneCalculator, it's a good start to load the defaults by clicking the button in the right top or lower corner.
-
-   syntax 4 the timezones:
-  * abbr "standard";
-  * name "standard";
-  * abbr daylight saving;
-  * name daylight saving;
-  * time-offset;
-  * daylight saving 4;
-     -  0 ... northern hemisphere
-     -  1 ... southern hemisphere
-     - -1 ... no daylight saving at all, eg. japan
-  * daylight saving in or like us timezone - The [European Summer Time](http://en.wikipedia.org/wiki/European_Summer_Time) lasts between the last Sunday in March and the last Sunday in October. Due to the Energy Bill (HR6 / Energy Policy Act of 2005 or Public Law 109-58), the [daylight saving for the states](http://en.wikipedia.org/wiki/Time_in_the_United_States) starts on the second Sunday in March and ends on the first Sunday in November.
-     -  0 ... no us time zone
-     -  1 ... us time zone
-
-  examples
-  * CET;Central European Time;CEST;Central European Summer Time;1;0;0
-  * EST;Eastern Standard Time;EDT;Eastern Daylight Time;10;1;0
-  * NZST;New Zealand Standard Time;NZDT;New Zealand Daylight Time;12;1;0
-  * PST;Pacific Standard Time;PDT;Pacific Daylight Time;-8;0;1
+3. Go to the Options/TimeZoneCalculator and configure the timezones the way you like by using the AJAX functionality in the Drag and Drop section or customize in the static section (all data for one timezone in one row, no spaces between ; separator). Feel free to play around and see the result in the section preview at the bottom of the options page. If you are new to TimeZoneCalculator, it's a good start to load the defaults by clicking the button in the right top or lower corner.
 
   timezone-infos are available at
   * [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/)
