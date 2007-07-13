@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
 Author: Bernhard Riedl
-Version: 0.50
+Version: 0.51
 Author URI: http://www.neotrinity.at
 */
 
@@ -143,7 +143,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.50\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.51\" />\n");
 }
 
 /*
@@ -743,6 +743,8 @@ function createTimeZoneCalculatorOptionPage() {
 
        <script type="text/javascript" language="javascript">
 
+       /* <![CDATA[ */
+
 	 var fields = ["abbr_standard", "name_standard", "abbr_daylightsaving", "name_daylightsaving", "offset"];
 
 	 /*
@@ -841,7 +843,7 @@ function createTimeZoneCalculatorOptionPage() {
 	}
 
 	/*
-	moves an element in a drag and drop one position up
+	moves an element in a drag and drop list one position up
 	*/
 
 	function timezones_moveElementUpforList(list, key) {
@@ -860,13 +862,13 @@ function createTimeZoneCalculatorOptionPage() {
 				reordered=true;
 			}
 			
-			//until element not found, just copy array
+			//until element not found, just copy array element
 			else {
 				newsequence[j]=sequence[j];
 			}
 		}
 
-		if (reordered) Sortable.setSequence (list,newsequence);
+		if (reordered) Sortable.setSequence(list,newsequence);
 		return reordered;
 	}
 
@@ -882,7 +884,7 @@ function createTimeZoneCalculatorOptionPage() {
 	}
 
 	/*
-	moves an element in a drag and drop one position down
+	moves an element in a drag and drop list one position down
 	*/
 
 	function timezones_moveElementDownforList(list, key) {
@@ -901,13 +903,13 @@ function createTimeZoneCalculatorOptionPage() {
 				j++;
 			}
 			
-			//until element not found, just copy array
+			//until element not found, just copy array element
 			else {
 				newsequence[j]=sequence[j];
 			}
 		}
 
-		if (reordered) Sortable.setSequence (list,newsequence);
+		if (reordered) Sortable.setSequence(list,newsequence);
 		return reordered;
 	}
 
@@ -952,7 +954,7 @@ function createTimeZoneCalculatorOptionPage() {
 
 	var sequence=Sortable.sequence('listTaken');
 	if (sequence.length>0) {
-		var list = escape(Sortable.sequence('listTaken'));
+		var list = escape(sequence);
 		var sorted_ids = unescape(list).split(',');
 	}
 
@@ -1243,6 +1245,9 @@ function createTimeZoneCalculatorOptionPage() {
        Event.observe('load_default_click', 'click', function(e){ document.getElementsByName('load_default')[0].click(); });
 
        <?php echo($listTakenListeners); ?>
+
+       /* ]]> */
+
        </script>
 
 	 <?php }
