@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
 Author: Bernhard Riedl
-Version: 0.51
+Version: 0.52
 Author URI: http://www.neotrinity.at
 */
 
@@ -143,7 +143,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.51\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.52\" />\n");
 }
 
 /*
@@ -844,32 +844,50 @@ function createTimeZoneCalculatorOptionPage() {
 
 	/*
 	moves an element in a drag and drop list one position up
+	modified by Nikk Folts, http://www.nikkfolts.com/
 	*/
 
-	function timezones_moveElementUpforList(list, key) {
+	function timezones_moveElementUpforList(list, row) {
+		return timezones_moveRow(list, row, 1);
+	}
+
+	/*
+	moves an element in a drag and drop list one position down
+	modified by Nikk Folts, http://www.nikkfolts.com/
+	*/
+
+	function timezones_moveElementDownforList(list, row) {
+		return timezones_moveRow(list, row, -1);
+	}
+
+	/*
+	moves an element in a drag and drop list one position
+	modified by Nikk Folts, http://www.nikkfolts.com/
+	*/
+
+	function timezones_moveRow(list, row, dir) {
 		var sequence=Sortable.sequence(list);
-		var newsequence=[];
-		var reordered=false;
+		var found=false;
 
 		//move only, if there is more than one element in the list
-		if (sequence.length>1) for (var j = 0; j < sequence.length; j++) {
+		if (sequence.length>1) for (var j=0; j<sequence.length; j++) {
 
-			//move, if not already first element, the element is not null
-			if (j>0 && sequence[j].length>0 && sequence[j]==key) {
-				var temp=newsequence[j-1];
-				newsequence[j-1]=key;
-				newsequence[j]=temp;
-				reordered=true;
-			}
-			
-			//until element not found, just copy array element
-			else {
-				newsequence[j]=sequence[j];
+			//element found
+			if (sequence[j]==row) {
+				found=true;
+
+				var i = j - dir;
+				if (i >= 0 && i <= sequence.length) {
+					var temp=sequence[i];
+					sequence[i]=row;
+					sequence[j]=temp;
+					break;
+				}
 			}
 		}
 
-		if (reordered) Sortable.setSequence(list,newsequence);
-		return reordered;
+		Sortable.setSequence(list, sequence);
+		return found;
 	}
 
 	/*
@@ -881,36 +899,6 @@ function createTimeZoneCalculatorOptionPage() {
 			timezones_moveElementUpforList('listAvailable', key);
 
 		timezones_updateDragandDropLists();
-	}
-
-	/*
-	moves an element in a drag and drop list one position down
-	*/
-
-	function timezones_moveElementDownforList(list, key) {
-		var sequence=Sortable.sequence(list);
-		var newsequence=[];
-		var reordered=false;
-
-		//move only, if there is more than one element in the list
-		if (sequence.length>1) for (var j = 0; j < sequence.length; j++) {
-
-			//move, if not already last element, the element is not null
-			if (j<(sequence.length-1) && sequence[j].length>0 && sequence[j]==key) {
-				newsequence[j+1]=key;
-				newsequence[j]=sequence[j+1];
-				reordered=true;
-				j++;
-			}
-			
-			//until element not found, just copy array element
-			else {
-				newsequence[j]=sequence[j];
-			}
-		}
-
-		if (reordered) Sortable.setSequence(list,newsequence);
-		return reordered;
 	}
 
 	/*
