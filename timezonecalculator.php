@@ -5,11 +5,11 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
 Author: Bernhard Riedl
-Version: 0.52
+Version: 0.53
 Author URI: http://www.neotrinity.at
 */
 
-/*  Copyright 2005-2007  Bernhard Riedl  (email : neo@neotrinity.at)
+/*  Copyright 2005-2008  Bernhard Riedl  (email : neo@neotrinity.at)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -143,7 +143,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.52\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.53\" />\n");
 }
 
 /*
@@ -558,6 +558,8 @@ function createTimeZoneCalculatorOptionPage() {
         <legend>Don't forget to click <em>Insert</em> or <em>Edit</em> after adopting and <em>Update options</em> after you're finished.</legend>
         <legend>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be loaded via the <em>Load defaults</em> button)</legend>
         <legend>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).<br /><br /></legend>
+        <legend>If you like to support the development of this plugin, donation are welcome. :)<br /></legend>
+        <legend><form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="neotrinity.at" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="USD" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br /><br /></legend>
      </fieldset>
 
     <?php
