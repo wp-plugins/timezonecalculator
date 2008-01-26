@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
 Author: Bernhard Riedl
-Version: 0.53
+Version: 0.54
 Author URI: http://www.neotrinity.at
 */
 
@@ -82,7 +82,7 @@ function timezones_admin_head() {
 		padding: 10px;
       }
 
-      #timezones_DragandDrop{
+      #timezones_DragandDrop, #timezones_Search {
 		float: right;
 		cursor : move;
 		border: 1px dotted;
@@ -91,7 +91,7 @@ function timezones_admin_head() {
 		padding: 5px;
       }
 
-      #timezones_new, #timezones_create, #timezones_loadExample {
+      #timezones_new, #timezones_create, #timezones_loadExample, #timezones_search_timeanddate {
 		margin: 10px 5px 10px 0px;
 		background: url( images/fade-butt.png );
 		border: 3px double #999;
@@ -104,7 +104,7 @@ function timezones_admin_head() {
 		float:left;
       }
 
-	#timezones_new:active, #timezones_create:active, #timezones_loadExample:active {
+	#timezones_new:active, #timezones_create:active, #timezones_loadExample:active, timezones_search_timeanddate:active {
 		background: #f4f4f4;
 		border: 3px double #ccc;
 		border-left-color: #999;
@@ -143,7 +143,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.53\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.54\" />\n");
 }
 
 /*
@@ -554,7 +554,7 @@ function createTimeZoneCalculatorOptionPage() {
 
      <fieldset>
         <legend>It maybe a good start for TimeZoneCalculator first-timers to click on <em>Load defaults</em>.</legend>
-        <legend>You can customize the descriptions by clicking on the desired timezone in each list.</legend>
+        <legend>You can customize the descriptions by clicking on the desired timezone in each list. Information about cities and their timezones can be searched below.</legend>
         <legend>Don't forget to click <em>Insert</em> or <em>Edit</em> after adopting and <em>Update options</em> after you're finished.</legend>
         <legend>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be loaded via the <em>Load defaults</em> button)</legend>
         <legend>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).<br /><br /></legend>
@@ -642,6 +642,18 @@ function createTimeZoneCalculatorOptionPage() {
         <legend>Garbage Bin</legend>
      </fieldset>
      <?php echo($listAvailable); ?>
+     </div>
+
+     <div id="timezones_Search" name="timezones_Search">
+
+        <fieldset>
+		<input type="text" value="" id="timezones_search_timeanddate_query" name="timezones_search_timeanddate_query" size="50" onkeyup="if(event.keyCode==13) timezones_search_timeanddate_openWindow();"/>
+        </fieldset>
+
+        <fieldset>
+      	<input type="button" id="timezones_search_timeanddate" name="timezones_search_timeanddate" value="Search" onClick="timezones_search_timeanddate_openWindow();"/>
+        </fieldset>
+
      </div>
 
      <br style="clear:both" />
@@ -746,6 +758,10 @@ function createTimeZoneCalculatorOptionPage() {
        <script type="text/javascript" language="javascript">
 
        /* <![CDATA[ */
+
+	 function timezones_search_timeanddate_openWindow() {
+		window.open('http://www.timeanddate.com/search/results.html?query='+document.getElementById('timezones_search_timeanddate_query').value,'timeanddate','width=600,height=400,top=200,left=200,toolbar=yes,location=yes,directories=np,status=yes,menubar=no,scrollbars=yes,copyhistory=no,resizable=yes');
+	 }
 
 	 var fields = ["abbr_standard", "name_standard", "abbr_daylightsaving", "name_daylightsaving", "offset"];
 
@@ -1226,6 +1242,7 @@ function createTimeZoneCalculatorOptionPage() {
 	 }
 
 	 new Draggable('timezones_DragandDrop');
+	 new Draggable('timezones_Search');
 
        Event.observe('timezones_create', 'click', function(e){ timezones_appendEntry(); });
        Event.observe('timezones_new', 'click', function(e){ timezones_resetNewEntryForm(); });
