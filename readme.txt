@@ -3,7 +3,7 @@ Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=neo%40neotrinity%2eat&item_name=neotrinity%2eat&no_shipping=1&no_note=1&tax=0&currency_code=USD&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: timezone, daylightsaving, world clock, date, widget, sidebar
 Requires at least: 1.5
-Tested up to: 2.3.3
+Tested up to: 2.5
 Stable tag: trunk
 
 Calculates different times and dates in timezones with respect to daylight saving on basis of utc.
@@ -12,9 +12,11 @@ Calculates different times and dates in timezones with respect to daylight savin
 
 Calculates different times and dates in timezones with respect to daylight saving on basis of utc. timezone-infos are available at [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/) or at [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
 
-**fully-optionpage-configurable, and as usual easy to integrate (ships with widget functionality)**
+* fully-optionpage-configurable
+* easy to integrate (ships with widget functionality and integrated timezones search function)
+* drag and drop admin menu page
 
-**Now with Drag and Drop admin menu page**
+**Now adopts automatically to wordpress 2.5 admin page styles**
 
 == Installation ==
 
@@ -28,7 +30,7 @@ Calculates different times and dates in timezones with respect to daylight savin
   * [timeanddate.com](http://www.timeanddate.com/library/abbreviations/timezones/)
   * [wikipedia.org](http://en.wikipedia.org/wiki/Timezones)
 
-4. If you got [widget functionality](http://wordpress.org/extend/plugins/widgets/), just drag and drop TimeZoneCalculator on your dynamic sidebar in the presentation menu and name it appropriate. Otherwise, put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to appear.
+4. If you got [widget functionality](http://wordpress.org/extend/plugins/widgets/), just drag and drop TimeZoneCalculator on your dynamic sidebar in the presentation menu and name it appropriately. Otherwise, put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to appear.
 
 5. Drink a beer, smoke a cigarette or celebrate in a way you like! (and maybe you want to add a link to [http://www.neotrinity.at/projects/](http://www.neotrinity.at/projects/))
 
@@ -40,7 +42,7 @@ As in the section [installation](http://wordpress.org/extend/plugins/timezonecal
 
 = Why is 'Drag and Drop' not working? Why can't I see the 'Drag and Drop' section? =
 
-This section is based on internal wordpress javascript-libraries, which means that it will only work with Wordpress versions >= 2.1 and you have to have javascript enabled in your browser (this is a default setting in a common browser like Firefox)! The plugin is still fully functionable without these constraints, but you need to add your timezone entries 'per hand', as in older versions of TimeZoneCalculator.
+This section is based on internal wordpress javascript-libraries, which means that it will only work with Wordpress versions >= 2.1 and you have to have javascript enabled in your browser (this is a default setting in a common browser like Firefox)! The plugin is still fully functionable without these constraints, but you need to customize your timezone entries 'per hand', as in older versions of TimeZoneCalculator.
 
 == Screenshots ==
 

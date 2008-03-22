@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc. - Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!
 Author: Bernhard Riedl
-Version: 0.54
+Version: 0.60
 Author URI: http://www.neotrinity.at
 */
 
@@ -62,20 +62,47 @@ for the admin-page
 
 function timezones_admin_head() {
 	global $wp_version;
+
+	/*
+	check if wordpress_admin_themes are available
+	*/
+
+	if (version_compare($wp_version, "2.5", ">=")) {
+		global $_wp_admin_css_colors;
+
+		$current_color = get_user_option('admin_color');
+		if ( empty($current_color) )
+			$current_color = 'fresh';
+
+
+		$current_wp_admin_css_colors=$_wp_admin_css_colors[$current_color]->colors;
+
+	}
+
+	/*
+	if themes are not available, use default colors
+	*/
+
+	else {
+		$current_wp_admin_css_colors=array("#14568a", "#14568a", "", "#c3def1");
+	}
+
 	if (version_compare($wp_version, "2.1", ">=")) {
+
 ?>
 
      <style type="text/css">
 
       li.timezones_sortablelist {
-  		background-color : #14568a;
-		color: #c3def1;
+		background-color: <?php echo $current_wp_admin_css_colors[1]; ?>;
+		color: <?php echo $current_wp_admin_css_colors[3]; ?>;
 		cursor : move;
 		padding: 3px 5px 3px 5px;
       }
 
       ul.timezones_sortablelist {
-		border: 1px dotted;
+		float: left;
+		border: 1px <?php echo $current_wp_admin_css_colors[0]; ?> solid;
 		list-style-image : none;
 		list-style-type : none;
 		margin: 10px 20px 20px 30px;
@@ -86,29 +113,18 @@ function timezones_admin_head() {
 		float: right;
 		cursor : move;
 		border: 1px dotted;
-		margin: 35px 20px 0px 0px;
-		width: 400px;
+		margin: 10px 20px 0px 0px;
+		width: 460px;
 		padding: 5px;
       }
 
-      #timezones_new, #timezones_create, #timezones_loadExample, #timezones_search_timeanddate {
-		margin: 10px 5px 10px 0px;
-		background: url( images/fade-butt.png );
-		border: 3px double #999;
-		border-left-color: #ccc;
-		border-top-color: #ccc;
-		color: #333;
-		padding: 0.25em;
-		width: 124px;
-		text-align: center;
-		float:left;
-      }
+	#timezones_DragandDrop_Edit_Label {
+		background-color: <?php echo $current_wp_admin_css_colors[1]; ?>;
+		color: <?php echo $current_wp_admin_css_colors[3]; ?>;
+	}
 
-	#timezones_new:active, #timezones_create:active, #timezones_loadExample:active, timezones_search_timeanddate:active {
-		background: #f4f4f4;
-		border: 3px double #ccc;
-		border-left-color: #999;
-		border-top-color: #999;
+	#timezones_DragandDrop_Edit_Message {
+		color: <?php echo $current_wp_admin_css_colors[0]; ?>;
 	}
 
 	img.timezones_arrowbutton {
@@ -143,7 +159,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.54\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.60\" />\n");
 }
 
 /*
@@ -243,7 +259,7 @@ function timezonecalculator_checkData($timeZoneTime) {
 		daylight saving 4
      		-  0 ... northern hemisphere
      		-  1 ... southern hemisphere
-     		- -1 ... no daylight saving at all, eg. japan
+     		- -1 ... no daylight saving at all, eg. thailand
 	*/
 
 	$hemisphere=$timeZoneTime[5];
@@ -547,20 +563,24 @@ function createTimeZoneCalculatorOptionPage() {
 
     <div class="submit">
       <input type="button" id="info_update_click" name="info_update_click" value="<?php _e('Update options') ?>" />
-      <input type="button" id="load_default_click" name="load_default_click" value="<?php _e('Load defaults') ?>" />
+      <input type="button" id="load_default_click" name="load_default_click" value="<?php _e('Load defaults') ?>" /><br /><br />
+
     </div>
 
          <a name="<?php echo($fieldsPre); ?>Drag_and_Drop"></a><h2>Drag and Drop Layout</h2>
 
-     <fieldset>
-        <legend>It maybe a good start for TimeZoneCalculator first-timers to click on <em>Load defaults</em>.</legend>
-        <legend>You can customize the descriptions by clicking on the desired timezone in each list. Information about cities and their timezones can be searched below.</legend>
-        <legend>Don't forget to click <em>Insert</em> or <em>Edit</em> after adopting and <em>Update options</em> after you're finished.</legend>
-        <legend>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be loaded via the <em>Load defaults</em> button)</legend>
-        <legend>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).<br /><br /></legend>
-        <legend>If you like to support the development of this plugin, donation are welcome. :)<br /></legend>
-        <legend><form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="neotrinity.at" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="USD" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br /><br /></legend>
-     </fieldset>
+     <ul>
+        <li>It maybe a good start for TimeZoneCalculator first-timers to click on <em>Load defaults</em>.</li>
+        <li>You can customize the descriptions by clicking on the desired timezone in each list. Information about cities and their timezones can be searched below.</li>
+        <li>Don't forget to click <em>Insert</em> or <em>Edit</em> after adopting and <em>Update options</em> after you're finished.</li>
+        <li>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be populated via the <em>Load defaults</em> button)</li>
+        <li>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).</li>
+        <li>You can publish the previously selected and saved timezones either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the <em>php function getTimeZonesTime()</em> wherever you like.</li>
+	</ul>
+
+        If you like to support the development of this plugin, donations are welcome. :) Maybe you also want to <a href="link-add.php">add a link</a> to <a href="http://www.neotrinity.at/projects/">http://www.neotrinity.at/projects/</a>.<br /><br />
+
+        <form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="neotrinity.at" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="USD" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br /><br />
 
     <?php
     /*
@@ -568,19 +588,17 @@ function createTimeZoneCalculatorOptionPage() {
     */
     ?>
 
-     <div style="float:left">
-     <fieldset>
-	  <legend>TimeZone Entries</legend>
-     </fieldset>
+     <h3>TimeZone Entries</h3>
+
      <?php echo($listTaken); ?>
-     </div>
 
      <?php
 	$timezones_newentry="timezones_newentry_";
 	$timezones_newentry_label="label";
 
 	$newentryFields=array("abbr_standard", "name_standard", "abbr_daylightsaving", "name_daylightsaving");
-	$newentryFieldsLength=array(10,50,10,50);
+	$newentryFieldsLength=array(10,30,10,30);
+	$newentryFieldsMaxLength=array(10,50,10,50);
 
 	/*
 	append dragable add/edit panel
@@ -592,40 +610,43 @@ function createTimeZoneCalculatorOptionPage() {
 
 	<input type="hidden" value="" id="<?php echo($timezones_newentry); ?>idtochange" name="<?php echo($timezones_newentry); ?>_idtochange" />
 
+    <table class="form-table" style="margin-bottom:0">
+
      <?php
 
         for ($i = 0; $i < sizeof($newentryFields); $i++) {
-        	echo("<fieldset><legend><label for=\"".$timezones_newentry.$newentryFields[$i]."\">".$newentryFields[$i]."</label></legend>");
-        	echo("<input onkeyup=\"if(event.keyCode==13) timezones_appendEntry();\" name=\"".$timezones_newentry.$newentryFields[$i]."\" id=\"".$timezones_newentry.$newentryFields[$i]."\" type=\"text\" size=\"".$newentryFieldsLength[$i]."\" maxlength=\"".$newentryFieldsLength[$i]."\" /></fieldset>");
+        	echo("<tr><td><label for=\"".$timezones_newentry.$newentryFields[$i]."\">".$newentryFields[$i]."</label></td>");
+        	echo("<td><input onkeyup=\"if(event.keyCode==13) timezones_appendEntry();\" name=\"".$timezones_newentry.$newentryFields[$i]."\" id=\"".$timezones_newentry.$newentryFields[$i]."\" type=\"text\" size=\"".$newentryFieldsLength[$i]."\" maxlength=\"".$newentryFieldsMaxLength[$i]."\" /></td></tr>");
 	}
 	?>
 
-      <fieldset><legend><label for="<?php echo($timezones_newentry); ?>offset">offset</label></legend>
-      <input onkeyup="if(event.keyCode==13) timezones_appendEntry();" onBlur="timezones_checkNumeric(this,-12.5,12.5,'','.','-',true);" name="<?php echo($timezones_newentry); ?>offset" id="<?php echo($timezones_newentry); ?>offset" type="text" size="5" maxlength="5" /></fieldset>
+      <tr><td><label for="<?php echo($timezones_newentry); ?>offset">offset</label></td>
+      <td><input onkeyup="if(event.keyCode==13) timezones_appendEntry();" onBlur="timezones_checkNumeric(this,-12.5,12.5,'','.','-',true);" name="<?php echo($timezones_newentry); ?>offset" id="<?php echo($timezones_newentry); ?>offset" type="text" size="5" maxlength="5" /></td>
+	</tr>
 
-     <fieldset>
-        <legend><label for="<?php echo($timezones_newentry); ?>daylight_saving_for">daylight saving for</label>
-	  <select onkeyup="if(event.keyCode==13) timezones_appendEntry();" name="<?php echo($timezones_newentry); ?>daylight_saving_for" id="<?php echo($timezones_newentry); ?>daylight_saving_for" style="size:1">
+     <tr>
+        <td><label for="<?php echo($timezones_newentry); ?>daylight_saving_for">daylight saving for</label></td>
+	  <td><select onkeyup="if(event.keyCode==13) timezones_appendEntry();" name="<?php echo($timezones_newentry); ?>daylight_saving_for" id="<?php echo($timezones_newentry); ?>daylight_saving_for" style="size:1">
         <option value="0">northern hemisphere</option>
         <option value="1">southern hemisphere</option>
-        <option value="-1">no daylight saving at all</option></legend>
-        </select>
-     </fieldset>
+        <option value="-1">no daylight saving at all</option>        </select></td>
+     </tr>
 
-     <fieldset>
-        <legend><label for="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone">daylight_saving_for_us_zone</label>
-        <input onkeyup="if(event.keyCode==13) timezones_appendEntry();" type="checkbox" name="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone" id="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone" /></legend>
-     </fieldset>
+     <tr>
+        <td><label for="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone">daylight_saving_for_us_zone</label></td>
+	  <td><input onkeyup="if(event.keyCode==13) timezones_appendEntry();" type="checkbox" name="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone" id="<?php echo($timezones_newentry); ?>daylight_saving_for_us_zone" /></td>
+     </tr>
 
-     <fieldset>
-	  <legend style="display:none; color:#14568a" id="<?php echo($timezones_newentry); ?>SuccessLabel" name="<?php echo($timezones_newentry); ?>SuccessLabel"><br /><br /><em>Successfully adopted!</em></legend>
-     </fieldset>
+     <tr style="display:none" id="<?php echo($timezones_newentry); ?>SuccessLabel" name="<?php echo($timezones_newentry); ?>SuccessLabel"><td colspan="2" style="font-weight:bold">Successfully adopted!</td>
+     </tr>
 
-        <fieldset>
-		<input type="button" id="timezones_create" value="Insert" />
+        <tr>
+		<td colspan="2"><input type="button" id="timezones_create" value="Insert" />
 		<input type="button" id="timezones_new" value="New" />
-        	<input type="button" id="timezones_loadExample" value="Example" />
-	  </fieldset>
+        	<input type="button" id="timezones_loadExample" value="Example" /></td>
+	  </tr>
+
+	</table>
 
      </div>
 
@@ -637,22 +658,24 @@ function createTimeZoneCalculatorOptionPage() {
     */
      ?>
 
-     <div style="float:left">
-     <fieldset>
-        <legend>Garbage Bin</legend>
-     </fieldset>
+     <h3>Garbage Bin</h3>
+
      <?php echo($listAvailable); ?>
-     </div>
 
      <div id="timezones_Search" name="timezones_Search">
 
-        <fieldset>
-		<input type="text" value="" id="timezones_search_timeanddate_query" name="timezones_search_timeanddate_query" size="50" onkeyup="if(event.keyCode==13) timezones_search_timeanddate_openWindow();"/>
-        </fieldset>
+    <table class="form-table" style="margin-bottom:0">
 
-        <fieldset>
-      	<input type="button" id="timezones_search_timeanddate" name="timezones_search_timeanddate" value="Search" onClick="timezones_search_timeanddate_openWindow();"/>
-        </fieldset>
+        <tr>
+		<td><label for="timezones_search_timeanddate_query">Search for timezones</label></td>
+		<td><input type="text" value="" id="timezones_search_timeanddate_query" name="timezones_search_timeanddate_query" size="40" maxlength="50" onkeyup="if(event.keyCode==13) timezones_search_timeanddate_openWindow();"/></td>
+        </tr>
+
+        <tr>
+      	<td colspan="2"><input type="button" id="timezones_search_timeanddate" name="timezones_search_timeanddate" value="Search" onClick="timezones_search_timeanddate_openWindow();"/></td>
+        </tr>
+
+	</table>
 
      </div>
 
@@ -664,21 +687,14 @@ function createTimeZoneCalculatorOptionPage() {
 
             <a name="<?php echo($fieldsPre); ?>Content"></a><h2>Content</h2>
 
-   		<fieldset>
-        <legend>In this section you can edit your TimeZones. - Please stick to the syntax stated below.</legend>
+   		In this section you can edit your TimeZones. - Please stick to the syntax stated below.
 
     <?php
 	global $wp_version;
 	if (version_compare($wp_version, "2.1", ">=")) { ?>
-        <legend>This is the static customizing section, forming the mirror of the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">Drag and Drop Layout</a> section.</legend>
-        <legend>Changes to positions which you make here are only reflected in the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">dynamic section</a> after pressing <em>Update options</em>.</legend>
-	<?php } ?>
+        Further, this static customizing section forms the mirror of the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">Drag and Drop Layout</a> section. Changes to positions which you make here are only reflected in the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">dynamic section</a> after pressing <em>Update options</em>.
+	<?php } ?><br/><br/>
 
-        <legend>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be loaded via the <em>Load defaults</em> button)</legend>
-        <legend>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).<br /><br /></legend>
-   		</fieldset>
-
-   		<fieldset>
    		<em>Syntax</em>
 		<ul>
 			<li>abbr "standard";</li>
@@ -687,10 +703,10 @@ function createTimeZoneCalculatorOptionPage() {
 			<li>name daylight saving;</li>
 			<li>time-offset;</li>
 
-			<li>daylight saving 4;<ul>
+			<li>daylight saving for;<ul>
 			  	<li>0 ... northern hemisphere</li>
 				<li>1 ... southern hemisphere</li>
-				<li>-1 ... no daylight saving at all, eg. japan</li>
+				<li>-1 ... no daylight saving at all, eg. thailand</li>
 			</ul></li>
 
 			<li>daylight saving in or like us timezone - The <a target="_blank" href="http://en.wikipedia.org/wiki/European_Summer_Time">European Summer Time</a> lasts between the last Sunday in March and the last Sunday in October. Due to the Energy Bill (HR6 / Energy Policy Act of 2005 or Public Law 109-58), the <a target="_blank" href="http://en.wikipedia.org/wiki/Time_in_the_United_States">daylight saving for the states</a> starts on the second Sunday in March and ends on the first Sunday in November.<ul>
@@ -713,35 +729,39 @@ function createTimeZoneCalculatorOptionPage() {
 	    		<li>PST;Pacific Standard Time;PDT;Pacific Daylight Time;-8;0;1</li>
 	    	</ul>
 
-     		</fieldset>
+<a name="<?php echo($fieldsPre); ?>TimeZones"></a>
+    <table class="form-table">
 
-     		<a name="<?php echo($fieldsPre); ?>TimeZones"></a><fieldset>
-          	<legend><label for="TimeZones">TimeZones</label></legend>
-          	<textarea name="TimeZones" id="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea>
-     		</fieldset>
+     		<tr><td><label for="TimeZones">TimeZones</label></td>
+          	<td><textarea name="TimeZones" id="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea></td>
+		</tr>
+
+	</table><br /><br />
 
             <a name="<?php echo($fieldsPre); ?>CSS_Tags"></a><h2>CSS-Tags</h2>
+
+    <table class="form-table">
 
 		<?php
 
      		foreach ($csstags as $csstag) {
-          		echo("<fieldset>");
-            	echo("<legend><label for=\"".$fieldsPre.$csstag."\">");
+          		echo("<tr>");
+            	echo("<td><label for=\"".$fieldsPre.$csstag."\">");
             	_e($csstag);
-            	echo("</label></legend>");
-              	echo("<input type=\"text\" size=\"30\" name=\"".$fieldsPre.$csstag."\" id=\"".$fieldsPre.$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($fieldsPre.$csstag)))."\" />");
-       	   	echo("</fieldset>");
+            	echo("</label></td>");
+              	echo("<td><input type=\"text\" size=\"30\" name=\"".$fieldsPre.$csstag."\" id=\"".$fieldsPre.$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($fieldsPre.$csstag)))."\" /></td>");
+       	   	echo("</tr>");
 	      } ?>
 
-	  <fieldset>
-	  <legend>You can optionally customize the Time_Format by using standard PHP syntax.</legend>
-	  <legend>default: yyyy-mm-dd hh:mm which in PHP looks like Y-m-d H:i</legend>
-        <legend>For details please refer to the WordPress <a href="http://codex.wordpress.org/Formatting_Date_and_Time">
-	  Documentation on date and time formatting</a>.</legend>
-        </fieldset>
+	</table><br /><br />
+
+	  You can customize the Time_Format by using standard PHP syntax. default: yyyy-mm-dd hh:mm which in PHP looks like Y-m-d H:i<br/><br/>
+        For details please refer to the WordPress <a href="http://codex.wordpress.org/Formatting_Date_and_Time">
+	  Documentation on date and time formatting</a>.
+        <br/><br/>
 
         <a name="<?php echo($fieldsPre); ?>Preview"></a><h2>Preview (call getTimeZonesTime(); wherever you like!)</h2>
-		<?php getTimeZonesTime(); ?><br /><br />
+		<?php getTimeZonesTime(); ?>
 
     <div class="submit">
       <input type="submit" name="info_update" value="<?php _e('Update options') ?>" />
