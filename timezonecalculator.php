@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc.
 Author: Bernhard Riedl
-Version: 0.72
+Version: 0.73
 Author URI: http://www.neotrinity.at
 */
 
@@ -166,7 +166,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.72\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.73\" />\n");
 }
 
 /*
@@ -234,12 +234,11 @@ function getTimeZonesTime() {
 
 		foreach ($timeZonesTime as $timeZoneTimeOption) {
 
-			$counter++;
-
 			//is there anything to parse in the particular line?
 			if (strlen($timeZoneTimeOption)>1) {
-				$timeZoneTime=explode(";", $timeZoneTimeOption);
+				$counter++;
 
+				$timeZoneTime=explode(";", $timeZoneTimeOption);
 
 				//data-check ok
 				if (timezonecalculator_checkData($timeZoneTime)) {
@@ -570,12 +569,14 @@ function createTimeZoneCalculatorOptionPage() {
 
 		foreach ($timeZonesTime as $timeZoneTimeOption) {
 
-			$tag=$timeZoneTimeOption;
-	            $upArrow='<img class="timezones_arrowbutton" src="'.$plugin_url.'arrow_up_blue.png" onclick="timezones_moveElementUp('.$counter.');" alt="move element up" />';
-	            $downArrow='<img class="timezones_arrowbutton" style="margin-right:20px;" src="'.$plugin_url.'arrow_down_blue.png" onclick="timezones_moveElementDown('.$counter.');" alt="move element down" />';
-			$listTakenListeners.="Event.observe('".$beforeKey.$counter."', 'click', function(e){ timezones_adoptDragandDropEdit('".$counter."') });";
-			$listTaken.= $before_tag. "\"".$beforeKey.$counter."\">".$upArrow.$downArrow.$tag.$after_tag. "\n";
-			$counter++;
+			if (strlen($timeZoneTimeOption)>1) {
+				$tag=$timeZoneTimeOption;
+		            $upArrow='<img class="timezones_arrowbutton" src="'.$plugin_url.'arrow_up_blue.png" onclick="timezones_moveElementUp('.$counter.');" alt="move element up" />';
+		            $downArrow='<img class="timezones_arrowbutton" style="margin-right:20px;" src="'.$plugin_url.'arrow_down_blue.png" onclick="timezones_moveElementDown('.$counter.');" alt="move element down" />';
+				$listTakenListeners.="Event.observe('".$beforeKey.$counter."', 'click', function(e){ timezones_adoptDragandDropEdit('".$counter."') });";
+				$listTaken.= $before_tag. "\"".$beforeKey.$counter."\">".$upArrow.$downArrow.$tag.$after_tag. "\n";
+				$counter++;
+			}
 		}
 	}
 
