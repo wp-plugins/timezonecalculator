@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc.
 Author: Bernhard Riedl
-Version: 0.71
+Version: 0.72
 Author URI: http://www.neotrinity.at
 */
 
@@ -166,7 +166,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.71\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.72\" />\n");
 }
 
 /*
@@ -234,20 +234,24 @@ function getTimeZonesTime() {
 
 		foreach ($timeZonesTime as $timeZoneTimeOption) {
 
-			$timeZoneTime=explode(";", $timeZoneTimeOption);
-
 			$counter++;
 
-			//data-check ok
-			if (timezonecalculator_checkData($timeZoneTime)) {
-				echo (getTimeZoneTime(array($timeZoneTime[0],$timeZoneTime[2]),
-							    array($timeZoneTime[1],$timeZoneTime[3]),
-							    $timeZoneTime[4],
-							    $timeZoneTime[5],$timeZoneTime[6],$timeFormat)."\n");
-			}
+			//is there anything to parse in the particular line?
+			if (strlen($timeZoneTimeOption)>1) {
+				$timeZoneTime=explode(";", $timeZoneTimeOption);
 
-			else {
-				timezonecalculator_getErrorMessage("Could not read line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
+
+				//data-check ok
+				if (timezonecalculator_checkData($timeZoneTime)) {
+					echo (getTimeZoneTime(array($timeZoneTime[0],$timeZoneTime[2]),
+								    array($timeZoneTime[1],$timeZoneTime[3]),
+								    $timeZoneTime[4],
+								    $timeZoneTime[5],$timeZoneTime[6],$timeFormat)."\n");
+				}
+
+				else {
+					timezonecalculator_getErrorMessage("Could not read line ".$counter."! - Offset, hemisphere or us timezone parameters are not correct. See the examples for hints.");
+				}
 			}
 		}
 
