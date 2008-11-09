@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc.
 Author: Bernhard Riedl
-Version: 0.73
+Version: 0.74
 Author URI: http://www.neotrinity.at
 */
 
@@ -112,7 +112,7 @@ function timezones_admin_head() {
 		border: 1px <?php echo $current_wp_admin_css_colors[0]; ?> solid;
 		list-style-image : none;
 		list-style-type : none;
-		margin: 10px 20px 20px 30px;
+		margin: 10px 20px 20px 0px;
 		padding: 10px;
       }
 
@@ -121,7 +121,7 @@ function timezones_admin_head() {
 		cursor : move;
 		border: 1px dotted;
 		margin: 10px 20px 0px 0px;
-		width: 460px;
+		width: 440px;
 		padding: 5px;
       }
 
@@ -166,7 +166,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.73\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.74\" />\n");
 }
 
 /*
@@ -584,14 +584,14 @@ function createTimeZoneCalculatorOptionPage() {
 	format list
 	*/
 
-	$elementHeight=52;
+	$elementHeight=62;
 
 	$sizeListTaken=$counter*$elementHeight;
 	if ($counter<=0) $sizeListTaken=$elementHeight;
-	$sizeListAvailable=$elementHeight;
+	$sizeListAvailable=$elementHeight/2;
 
-	$listTaken="<ul class=\"timezones_sortablelist\" id=\"listTaken\" style=\"height:".$sizeListTaken."px;width:350px;\">".$listTaken."</ul>";
-	$listAvailable="<ul class=\"timezones_sortablelist\" id=\"listAvailable\" style=\"height:".$sizeListAvailable."px;width:350px;\"><li style=\"display:none\"></li></ul>";
+	$listTaken="<div style=\"cursor:move\" id=\"timezones_listTaken\"><h3>TimeZone Entries</h3><ul class=\"timezones_sortablelist\" id=\"listTaken\" style=\"height:".$sizeListTaken."px;width:290px;\">".$listTaken."</ul></div>";
+	$listAvailable="<div style=\"cursor:move\" id=\"timezones_listAvailable\"><h3>Garbage Bin</h3><ul class=\"timezones_sortablelist\" id=\"listAvailable\" style=\"height:".$sizeListAvailable."px;width:290px;\"><li style=\"display:none\"></li></ul></div>";
 
 	}
 
@@ -632,8 +632,6 @@ function createTimeZoneCalculatorOptionPage() {
     show stored timezones
     */
     ?>
-
-     <h3>TimeZone Entries</h3>
 
      <?php echo($listTaken); ?>
 
@@ -703,8 +701,6 @@ function createTimeZoneCalculatorOptionPage() {
     */
      ?>
 
-     <h3>Garbage Bin</h3>
-
      <?php echo($listAvailable); ?>
 
      <div id="timezones_Search">
@@ -713,7 +709,7 @@ function createTimeZoneCalculatorOptionPage() {
 
         <tr>
 		<td><label for="timezones_search_timeanddate_query">Search for timezones</label></td>
-		<td><input type="text" value="" id="timezones_search_timeanddate_query" name="timezones_search_timeanddate_query" size="40" maxlength="50" onkeyup="if(event.keyCode==13) timezones_search_timeanddate_openWindow();"/></td>
+		<td><input type="text" value="" id="timezones_search_timeanddate_query" name="timezones_search_timeanddate_query" size="35" maxlength="40" onkeyup="if(event.keyCode==13) timezones_search_timeanddate_openWindow();"/></td>
         </tr>
 
         <tr>
@@ -810,7 +806,9 @@ function createTimeZoneCalculatorOptionPage() {
 	  Documentation on date and time formatting</a>.</div>
         <br/><br/>
 
-        <a name="<?php echo($fieldsPre); ?>Preview"></a><h2>Preview (call getTimeZonesTime(); wherever you like!)</h2>
+        <a name="<?php echo($fieldsPre); ?>Preview"></a><h2>Preview</h2>
+
+You can publish this output either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the <em>php function getTimeZonesTime()</em> wherever you like.<br /><br />
 		<?php getTimeZonesTime(); ?>
 
     <div class="submit">
@@ -1067,7 +1065,7 @@ function createTimeZoneCalculatorOptionPage() {
 	dynamically set new list heights
 	*/
 
-      var elementHeight=53;
+      var elementHeight=62;
 
 	var listTakenLength=sorted_ids.length*elementHeight;
 	if (listTakenLength<=0) listTakenLength=elementHeight;
@@ -1346,6 +1344,8 @@ function createTimeZoneCalculatorOptionPage() {
 		return true;
 	}
 
+	 new Draggable('timezones_listTaken');
+	 new Draggable('timezones_listAvailable');
 	 new Draggable('timezones_DragandDrop');
 	 new Draggable('timezones_Search');
 
