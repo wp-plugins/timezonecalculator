@@ -24,7 +24,7 @@ Calculates times and dates in different timezones with respect to daylight savin
 
 3. Navigate to the Settings/TimeZoneCalculator tab and customize the timezones according to your desires.
 
-4. If you got widget functionality just drag and drop TimeZoneCalculator on your dynamic sidebar in the Appearance Menu. Otherwise, put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want it to be published.
+4. If you got widget functionality just drag and drop TimeZoneCalculator on your dynamic sidebar in the Appearance Menu. Otherwise, put this code `<?php getTimeZonesTime(); ?>` into your sidebar menu (sidebar.php) or where you want the results to be published.
 
 5. Be happy and celebrate! (and maybe you want to add a link to [http://www.neotrinity.at/projects/](http://www.neotrinity.at/projects/))
 
@@ -36,6 +36,6 @@ This section is based on internal WordPress Javascript-libraries, which means th
 
 == Screenshots ==
 
-1. The first Screenshot shows the Options/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
+1. This screenshot shows the Options/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
 
-2. The second Screenshot shows the CSS Tags and the Preview Section of the Options/TimeZoneCalculator Tab in the Admin Menu.
+2. This picture presents the CSS Tags and the Preview Section of the TimeZoneCalculator Tab in the Admin Menu.
