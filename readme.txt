@@ -32,7 +32,7 @@ Calculates times and dates in different timezones with respect to daylight savin
 
 = Why is 'Drag and Drop' not working? Why can't I see the 'Drag and Drop' section? =
 
-This section is based on internal WordPress Javascript-libraries, which means that it will only work with WordPress Version 2.1 or higher and you have to have Javascript enabled in your browser (this is a default setting in a common browser like Firefox)! The plugin is still fully functional without these constraints, but you need to customize your timezone entries 'per hand', as in older versions of TimeZoneCalculator.
+This section is based on internal WordPress Javascript-libraries, which means that it will only work with WordPress Version 2.1 or higher and you have to have Javascript enabled in your browser (this is a default setting in a common browser like Firefox)! The plugin is still fully functional without these constraints, but you need to customize your timezone entries manually, as in older versions of TimeZoneCalculator.
 
 == Screenshots ==
 
