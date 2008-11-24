@@ -3,9 +3,9 @@
 /*
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
-Description: Calculates different times and dates in timezones with respect to daylight saving on basis of utc.
+Description: Calculates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 0.74
+Version: 0.80
 Author URI: http://www.neotrinity.at
 */
 
@@ -38,6 +38,8 @@ called from init hook
 */
 
 function timezonecalculator_init() {
+	DEFINE ('TIMEZONECALCULATOR_PLUGINURL', get_settings('siteurl'). '/'. str_replace( ABSPATH, '', dirname(__FILE__) . '/'));
+
 	add_action('wp_head', 'timezonecalculator_wp_head');
 	add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
 	add_filter('plugin_action_links', 'timezonecalculator_adminmenu_plugin_actions', -10, 2);
@@ -70,6 +72,8 @@ for the admin-page
 function timezones_admin_head() {
 	global $wp_version;
 
+	$current_wp_admin_css_colors=array();
+
 	/*
 	check if wordpress_admin_themes are available
 	*/
@@ -81,7 +85,6 @@ function timezones_admin_head() {
 		if ( empty($current_color) )
 			$current_color = 'fresh';
 
-
 		$current_wp_admin_css_colors=$_wp_admin_css_colors[$current_color]->colors;
 
 	}
@@ -90,15 +93,21 @@ function timezones_admin_head() {
 	if themes are not available, use default colors
 	*/
 
-	else {
+	if (sizeof($current_wp_admin_css_colors)<4) {
 		$current_wp_admin_css_colors=array("#14568a", "#14568a", "", "#c3def1");
 	}
 
-	if (version_compare($wp_version, "2.1", ">=")) {
-
 ?>
-
      <style type="text/css">
+
+	.timezones_wrap ul {
+		list-style-type : disc;
+		padding: 5px 5px 5px 30px;
+	}
+
+<?php
+	if (version_compare($wp_version, "2.1", ">=")) {
+?>
 
       li.timezones_sortablelist {
 		background-color: <?php echo $current_wp_admin_css_colors[1]; ?>;
@@ -121,7 +130,7 @@ function timezones_admin_head() {
 		cursor : move;
 		border: 1px dotted;
 		margin: 10px 20px 0px 0px;
-		width: 440px;
+		width: 445px;
 		padding: 5px;
       }
 
@@ -140,17 +149,14 @@ function timezones_admin_head() {
 		margin-left: 5px;
 	}
 
-	img.timezones_arrowbutton:hover {
-		border-bottom: 1px dotted #ffffff;
-		border-top: 1px dotted #ffffff;
+	img.timezones_sectionbutton {
+		cursor: pointer;
 	}
 
+<?php } ?>
       </style>
 
-<?php
-	}
-
-}
+<?php }
 
 /*
 called from widget_init hook
@@ -166,7 +172,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.74\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.80\" />\n");
 }
 
 /*
@@ -467,7 +473,7 @@ function addTimeZoneCalculatorOptionPage() {
 produce toggle button for showing and hiding sections
 */
 
-function timezonecalculator_open_close_section($section, $plugin_url, $default) {
+function timezonecalculator_open_close_section($section, $default) {
 
 	if ($default==='1') {
 		$defaultImage='down';
@@ -478,7 +484,7 @@ function timezonecalculator_open_close_section($section, $plugin_url, $default) 
 		$defaultAlt='show';
 	}
 
-	echo("<img onclick=\"timezonecalculator_toggle_div_and_image(this, '".$section."', 'blind', '".$plugin_url."arrow_right_blue.png', '".$plugin_url."arrow_down_blue.png');\" alt=\"".$defaultAlt." Section\" src=\"".$plugin_url."arrow_".$defaultImage."_blue.png\" />&nbsp;");
+	echo("<img class=\"timezones_sectionbutton\" onclick=\"timezonecalculator_toggle_div_and_image(this, '".$section."', 'blind', '".TIMEZONECALCULATOR_PLUGINURL."arrow_right_blue.png', '".TIMEZONECALCULATOR_PLUGINURL."arrow_down_blue.png');\" alt=\"".$defaultAlt." Section\" src=\"".TIMEZONECALCULATOR_PLUGINURL."arrow_".$defaultImage."_blue.png\" />&nbsp;");
 
 }
 
@@ -492,9 +498,7 @@ function createTimeZoneCalculatorOptionPage() {
     $csstags=array("before_List", "after_List", "before_Tag", "after_Tag", "Time_Format");
     $csstags_defaults=array("<ul>", "</ul>", "<li>", "</li>", "Y-m-d H:i");
 
-    $sections=array('Content_Section' => '0', 'CSS_Tags_Section' => '0');
-
-     $plugin_url = get_settings('siteurl'). '/wp-content/plugins/timezonecalculator/';
+    $sections=array('Instructions_Section' => '1', 'Content_Section' => '0', 'CSS_Tags_Section' => '0');
 
     /*
     configuration changed => store parameters
@@ -530,6 +534,15 @@ function createTimeZoneCalculatorOptionPage() {
 
         ?><div class="updated"><p><strong>
         <?php _e('Defaults loaded!')?></strong></p></div>
+
+      <?php }
+
+      elseif (isset($_GET['cleanup'])) {
+
+	  timezonecalculator_uninstall();
+
+        ?><div class="updated"><p><strong>
+        <?php _e('Settings deleted!')?></strong></p></div>
 
       <?php }
 
@@ -571,8 +584,8 @@ function createTimeZoneCalculatorOptionPage() {
 
 			if (strlen($timeZoneTimeOption)>1) {
 				$tag=$timeZoneTimeOption;
-		            $upArrow='<img class="timezones_arrowbutton" src="'.$plugin_url.'arrow_up_blue.png" onclick="timezones_moveElementUp('.$counter.');" alt="move element up" />';
-		            $downArrow='<img class="timezones_arrowbutton" style="margin-right:20px;" src="'.$plugin_url.'arrow_down_blue.png" onclick="timezones_moveElementDown('.$counter.');" alt="move element down" />';
+		            $upArrow='<img class="timezones_arrowbutton" src="'.TIMEZONECALCULATOR_PLUGINURL.'arrow_up_blue.png" onclick="timezones_moveElementUp('.$counter.');" alt="move element up" />';
+		            $downArrow='<img class="timezones_arrowbutton" style="margin-right:20px;" src="'.TIMEZONECALCULATOR_PLUGINURL.'arrow_down_blue.png" onclick="timezones_moveElementDown('.$counter.');" alt="move element down" />';
 				$listTakenListeners.="Event.observe('".$beforeKey.$counter."', 'click', function(e){ timezones_adoptDragandDropEdit('".$counter."') });";
 				$listTaken.= $before_tag. "\"".$beforeKey.$counter."\">".$upArrow.$downArrow.$tag.$after_tag. "\n";
 				$counter++;
@@ -601,31 +614,49 @@ function createTimeZoneCalculatorOptionPage() {
 
 	?>
 
-     <div class="wrap">
+     <div class="wrap"><div class="timezones_wrap">
+
+<?php if (version_compare($wp_version, "2.1", ">=")) { ?>
+    <div class="submit">
+      <input type="button" id="info_update_click" name="info_update_click" value="<?php _e('Update options') ?>" />
+      <input type="button" id="load_default_click" name="load_default_click" value="<?php _e('Load defaults') ?>" />
+    </div>
+<?php } ?>
+
+Welcome to the Settings-Page of <a target="_blank" href="http://www.neotrinity.at/projects/">TimeZoneCalculator</a>. This plugin calculates times and dates in different timezones with respect to daylight saving on basis of <abbr title="Coordinated Universal Time">UTC</abbr>.
+
+<?php if (version_compare($wp_version, "2.1", ">=")) { ?><h2><?php timezonecalculator_open_close_section($fieldsPre.'Instructions_Section', $sections['Instructions_Section']); ?>Instructions</h2>
+
+	<div id="<?php echo($fieldsPre); ?>Instructions_Section" <?php if ($sections['Instructions_Section']==='0') { ?>style="display:none"<?php } ?>>
+
+     <ul>
+        <li>It may be a good start for TimeZoneCalculator first-timers to click on <strong>Load defaults</strong>.</li>
+        <li>You can insert new timezones by filling out the form on the right in the <a href="#<?php echo($fieldsPre); ?>Drag_and_Drop">Drag and Drop Layout Section</a> and clicking <strong>Insert</strong>. If you're not sure about the parameters you can also populate the aforementioned form with an example or read further information about the necessary fields in the <a href="#<?php echo($fieldsPre); ?>Content">Content Section</a>. All parameters of TimeZoneCalculator can also be changed in the <a href="#<?php echo($fieldsPre); ?>Content">latter section</a> without the usage of Javascript. Anyway, new entries are only saved after clicking on <strong>Update options</strong>.<br />
+
+Hint: Information about cities and their timezones can be searched below.</li>
+	  <li>To customize existing timezones click on the entry you want to change in any list and edit the parameters in the form on the right. After clicking <strong>Change</strong> the selected timezone's parameters are adopted in its list. The timezones can be re-orderd within a list either by drag and drop or by clicking on the arrows on the particular timezone's left hand side. Don't forget to save all your adjustments by clicking on <strong>Update options</strong>.</li>
+        <li>To remove timezones from the list just drag and drop them onto the Garbage Bin and click on <strong>Update options</strong>.</li>
+        <li>Style-customizations can be made in the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags Section</a>. (Defaults are automatically populated via the <strong>Load defaults</strong> button)</li>
+        <li>Before you publish the results you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a>.</li>
+        <li>Finally, you can publish the previously selected and saved timezones either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the php function <code>getTimeZonesTime()</code> wherever you like.</li>
+    <?php
+	if (!function_exists('register_uninstall_hook')) { ?>
+        <li>If you decide to uninstall TimeZoneCalculator firstly remove the optionally added <a href="widgets.php">Sidebar Widget</a> or the integrated php function call(s) and secondly  <a href="?page=timezonecalculator/timezonecalculator.php&amp;cleanup=true" onclick="javascript:return confirm('Are you sure you want to delete all your settings?')">click here</a> to clean up the database, then disable it in the <a href="plugins.php">Plugins Tab</a> and delete the <code>timezonecalculator</code> directory in your WordPress Plugins directory (usually wp-content/plugins) on your webserver.</li>
+    <?php }
+	else { ?>
+        <li>If you decide to uninstall TimeZoneCalculator firstly remove the optionally added <a href="widgets.php">Sidebar Widget</a> or the integrated php function call(s) and secondly disable and delete it in the <a href="plugins.php">Plugins Tab</a>.</li>
+    <?php } ?>
+</ul></div><?php } ?>
+
+<h2>Support</h2>
+        If you like to support the development of this plugin, donations are welcome. <?php echo(convert_smilies(':)')); ?> Maybe you also want to <a href="link-add.php">add a link</a> to <a href="http://www.neotrinity.at/projects/">http://www.neotrinity.at/projects/</a>.<br /><br />
+
+        <form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="neotrinity.at" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="USD" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br /><br />
 
     <?php
 	if (version_compare($wp_version, "2.1", ">=")) { ?>
 
-    <div class="submit">
-      <input type="button" id="info_update_click" name="info_update_click" value="<?php _e('Update options') ?>" />
-      <input type="button" id="load_default_click" name="load_default_click" value="<?php _e('Load defaults') ?>" /><br /><br />
-
-    </div>
-
          <a name="<?php echo($fieldsPre); ?>Drag_and_Drop"></a><h2>Drag and Drop Layout</h2>
-
-     <ul>
-        <li>It maybe a good start for TimeZoneCalculator first-timers to click on <em>Load defaults</em>.</li>
-        <li>You can customize the descriptions by clicking on the desired timezone in each list. Information about cities and their timezones can be searched below.</li>
-        <li>Don't forget to click <em>Insert</em> or <em>Edit</em> after adopting and <em>Update options</em> after you're finished.</li>
-        <li>Without filling out the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags</a>, your users might be disappointed... ;) (defaults can be populated via the <em>Load defaults</em> button)</li>
-        <li>Before you publish the results of the plugin you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a> to get the experience first (after pressing <em>Update options</em>).</li>
-        <li>You can publish the previously selected and saved timezones either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the <em>php function getTimeZonesTime()</em> wherever you like.</li>
-	</ul>
-
-        If you like to support the development of this plugin, donations are welcome. :) Maybe you also want to <a href="link-add.php">add a link</a> to <a href="http://www.neotrinity.at/projects/">http://www.neotrinity.at/projects/</a>.<br /><br />
-
-        <form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="neotrinity.at" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="USD" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br /><br />
 
     <?php
     /*
@@ -720,25 +751,24 @@ function createTimeZoneCalculatorOptionPage() {
 
      </div>
 
-     <br style="clear:both" />
+     <br style="clear:both" /><br />
 
 <?php } ?>
 
        <form action="options-general.php?page=timezonecalculator/timezonecalculator.php" method="post">
 
-          <a name="<?php echo($fieldsPre); ?>Content"></a><h2><?php if (version_compare($wp_version, "2.1", ">=")) { timezonecalculator_open_close_section($fieldsPre.'Content_Section', $plugin_url, $sections['Content_Section']); } ?>Content</h2>
+          <a name="<?php echo($fieldsPre); ?>Content"></a><h2><?php if (version_compare($wp_version, "2.1", ">=")) { timezonecalculator_open_close_section($fieldsPre.'Content_Section', $sections['Content_Section']); } ?>Content</h2>
 
 	<div id="<?php echo($fieldsPre); ?>Content_Section" <?php if (($sections['Content_Section']==='0') && (version_compare($wp_version, "2.1", ">=")) ) { ?>style="display:none"<?php } ?>>
 
    		In this section you can edit your TimeZones. - Please stick to the syntax stated below.
 
     <?php
-	global $wp_version;
 	if (version_compare($wp_version, "2.1", ">=")) { ?>
-        Further, this static customizing section forms the mirror of the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">Drag and Drop Layout</a> section. Changes to positions which you make here are only reflected in the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">dynamic section</a> after pressing <em>Update options</em>.
+        This static customizing section forms the mirror of the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">Drag and Drop Layout Section</a>. Changes to positions which you make here are only reflected in the <a href="#<?php echo($fieldsPre) ?>Drag_and_Drop">Drag and Drop Layout Section</a> after pressing <strong>Update options</strong>.
 	<?php } ?><br/><br/>
 
-   		<em>Syntax</em>
+   		<h3>Syntax</h3>
 		<ul>
 			<li>abbr "standard";</li>
 			<li>name "standard";</li>
@@ -749,22 +779,22 @@ function createTimeZoneCalculatorOptionPage() {
 			<li>daylight saving for;<ul>
 			  	<li>0 ... northern hemisphere</li>
 				<li>1 ... southern hemisphere</li>
-				<li>-1 ... no daylight saving at all, eg. thailand</li>
+				<li>-1 ... no daylight saving at all, eg. Thailand</li>
 			</ul></li>
 
-			<li>daylight saving in or like us timezone - The <a target="_blank" href="http://en.wikipedia.org/wiki/European_Summer_Time">European Summer Time</a> lasts between the last Sunday in March and the last Sunday in October. Due to the Energy Bill (HR6 / Energy Policy Act of 2005 or Public Law 109-58), the <a target="_blank" href="http://en.wikipedia.org/wiki/Time_in_the_United_States">daylight saving for the states</a> starts on the second Sunday in March and ends on the first Sunday in November.<ul>
+			<li>daylight saving in or like us timezone - The <a target="_blank" href="http://en.wikipedia.org/wiki/European_Summer_Time">European Summer Time</a> lasts between the last Sunday in March and the last Sunday in October. Due to the Energy Bill (HR6 / Energy Policy Act of 2005 or Public Law 109-58), the <a target="_blank" href="http://en.wikipedia.org/wiki/Time_in_the_United_States">daylight saving for The States</a> starts on the second Sunday in March and ends on the first Sunday in November.<ul>
 				<li>0 ... no us time zone</li>
 				<li>1 ... us time zone</li>
 			</ul></li>
 		</ul>
 
-		<em>Infos</em>
+		<h3>Infos</h3>
 		<ul>
 			<li><a target="_blank" href="http://www.timeanddate.com/library/abbreviations/timezones/">timeanddate.com</a></li>
 			<li><a target="_blank" href="http://en.wikipedia.org/wiki/Timezones">wikipedia.org</a></li>
 		</ul>
 
-		<em>Examples</em>
+		<h3>Examples</h3>
 		<ul>
 	    		<li>CET;Central European Time;CEST;Central European Summer Time;1;0;0</li>
 	    		<li>EST;Eastern Standard Time;EDT;Eastern Daylight Time;10;1;0</li>
@@ -776,15 +806,23 @@ function createTimeZoneCalculatorOptionPage() {
     <table class="form-table">
 
      		<tr><td><label for="TimeZones">TimeZones</label></td>
-          	<td><textarea name="TimeZones" id="TimeZones" cols="100" rows="5"><?php echo(get_option('TimeZones')); ?></textarea></td>
+          	<td><textarea name="TimeZones" id="TimeZones" cols="90" rows="5"><?php echo(get_option('TimeZones')); ?></textarea></td>
 		</tr>
 
 	</table></div><br /><br />
 
 
-          <a name="<?php echo($fieldsPre); ?>CSS_Tags"></a><h2><?php if (version_compare($wp_version, "2.1", ">=")) { timezonecalculator_open_close_section($fieldsPre.'CSS_Tags_Section', $plugin_url, $sections['CSS_Tags_Section']); } ?>CSS-Tags</h2>
+          <a name="<?php echo($fieldsPre); ?>CSS_Tags"></a><h2><?php if (version_compare($wp_version, "2.1", ">=")) { timezonecalculator_open_close_section($fieldsPre.'CSS_Tags_Section', $sections['CSS_Tags_Section']); } ?>CSS-Tags</h2>
 
 	<div id="<?php echo($fieldsPre); ?>CSS_Tags_Section" <?php if (($sections['CSS_Tags_Section']==='0') && (version_compare($wp_version, "2.1", ">=")) ) { ?>style="display:none"<?php } ?>>
+
+In this section you can customize the layout of <a href="#<?php echo($fieldsPre); ?>Preview">TimeZoneCalculator's output</a> after saving your changes by clicking on <strong>Update options</strong>. The structure of the available fields is as follows:<br /><br />
+
+[before_List]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;[before_Tag]<strong>[TIMEZONE 1]</strong>[after_Tag]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;...<br />
+&nbsp;&nbsp;&nbsp;&nbsp;[before_Tag]<strong>[TIMEZONE n]</strong>[after_Tag]<br />
+[after_List]<br /><br />
 
     <table class="form-table">
 
@@ -808,7 +846,7 @@ function createTimeZoneCalculatorOptionPage() {
 
         <a name="<?php echo($fieldsPre); ?>Preview"></a><h2>Preview</h2>
 
-You can publish this output either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the <em>php function getTimeZonesTime()</em> wherever you like.<br /><br />
+You can publish this output either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the php function <code>getTimeZonesTime()</code> wherever you like.<br /><br />
 		<?php getTimeZonesTime(); ?>
 
     <div class="submit">
@@ -826,10 +864,9 @@ You can publish this output either by adding a <a href="widgets.php">Sidebar Wid
     ?>
 
     </form>
-    </div>
+    </div></div>
 
     <?php
-	global $wp_version;
 	if (version_compare($wp_version, "2.1", ">=")) { ?>
 
        <script type="text/javascript" language="javascript">
@@ -1234,7 +1271,7 @@ You can publish this output either by adding a <a href="widgets.php">Sidebar Wid
 				insert new timezone into drag and drop list
 				*/
 
-				var plugin_url = '<?php echo(get_settings('siteurl').'/wp-content/plugins/timezonecalculator/');?>';
+				var plugin_url = '<?php echo(TIMEZONECALCULATOR_PLUGINURL); ?>';
 		            var upArrow='<img class="timezones_arrowbutton" src="'+plugin_url+'arrow_up_blue.png" onclick="timezones_moveElementUp('+nextTagID+');" alt="move element up" />';
 		            var downArrow='<img class="timezones_arrowbutton" style="margin-right:20px;" src="'+plugin_url+'arrow_down_blue.png" onclick="timezones_moveElementDown('+nextTagID+');" alt="move element down" />';
 
@@ -1368,5 +1405,30 @@ You can publish this output either by adding a <a href="widgets.php">Sidebar Wid
 
 add_action('init', 'timezonecalculator_init');
 add_action('widgets_init', 'widget_timezonecalculator_init');
+
+if ( function_exists('register_uninstall_hook') )	register_uninstall_hook( __FILE__, 'timezonecalculator_uninstall' );
+
+/*
+database cleanup on uninstall
+*/
+
+function timezonecalculator_uninstall() {
+	delete_option('widget_timezonecalculator');
+
+	$fieldsPre="timezones_";
+	$csstags=array("before_List", "after_List", "before_Tag", "after_Tag", "Time_Format");
+
+    $sections=array('Instructions_Section' => '1', 'Content_Section' => '0', 'CSS_Tags_Section' => '0');
+
+	foreach ($csstags as $csstag) {
+		delete_option($fieldsPre.$csstag);
+	}
+
+	delete_option("TimeZones");
+
+	foreach ($sections as $key => $section) {
+		delete_option($fieldsPre.$key);
+	}
+}
 
 ?>

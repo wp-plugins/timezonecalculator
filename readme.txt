@@ -15,12 +15,13 @@ Calculates times and dates in different timezones with respect to daylight savin
 * fully optionpage-configurable
 * easy to integrate (ships with widget functionality and integrated timezones search function)
 * drag and drop admin menu page
+* clean uninstall
 
 == Installation ==
 
 1. Copy the `timezonecalculator` directory into your WordPress Plugins directory (usually wp-content/plugins). Hint: With WordPress 2.7 and higher you can conduct this step within your Admin Menu.
 
-2. In the WordPress Admin Menu, go to the Plugins tab, and activate the TimeZoneCalculator plugin.
+2. In the WordPress Admin Menu go to the Plugins tab and activate the TimeZoneCalculator plugin.
 
 3. Navigate to the Settings/TimeZoneCalculator tab and customize the timezones according to your desires.
 
@@ -32,7 +33,7 @@ Calculates times and dates in different timezones with respect to daylight savin
 
 = Why is 'Drag and Drop' not working? Why can't I see the 'Drag and Drop' section? =
 
-This section is based on internal WordPress Javascript-libraries, which means that it will only work with WordPress Version 2.1 or higher and you have to have Javascript enabled in your browser (this is a default setting in a common browser like Firefox)! The plugin is still fully functional without these constraints, but you need to customize your timezone entries manually, as in older versions of TimeZoneCalculator.
+This section is based on internal WordPress Javascript-libraries, which means that it will only work with WordPress Version 2.1 or higher. In addition you have to have Javascript enabled in your browser (this is a default setting in a common browser like Firefox). The plugin is still fully functional without these constraints, but you need to customize your timezone entries manually as in older versions of TimeZoneCalculator.
 
 == Screenshots ==
 
