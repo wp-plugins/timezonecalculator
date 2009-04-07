@@ -37,6 +37,6 @@ This section is based on internal WordPress Javascript-libraries, which means th
 
 == Screenshots ==
 
-1. This screenshot shows the Options/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
+1. This screenshot shows the Settings/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
 
-2. This picture presents the CSS Tags and the Preview Section of the TimeZoneCalculator Tab in the Admin Menu.
+2. This picture presents the Preview Section of the TimeZoneCalculator Tab in the Admin Menu.
