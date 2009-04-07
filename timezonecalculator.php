@@ -5,11 +5,11 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 0.80
+Version: 0.81
 Author URI: http://www.neotrinity.at
 */
 
-/*  Copyright 2005-2008  Bernhard Riedl  (email : neo@neotrinity.at)
+/*  Copyright 2005-2009  Bernhard Riedl  (email : neo@neotrinity.at)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,11 @@ called from init hook
 
 function timezonecalculator_init() {
 	DEFINE ('TIMEZONECALCULATOR_PLUGINURL', get_settings('siteurl'). '/'. str_replace( ABSPATH, '', dirname(__FILE__) . '/'));
+
+	if (!isset($_GET['time']))
+		DEFINE ('TIMEZONECALCULATOR_CURRENTGMDATE', gmdate('U'));
+	else
+		DEFINE ('TIMEZONECALCULATOR_CURRENTGMDATE', $_GET['time']);
 
 	add_action('wp_head', 'timezonecalculator_wp_head');
 	add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
@@ -172,7 +177,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"0.80\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"0.81\" />\n");
 }
 
 /*
@@ -230,7 +235,7 @@ function getTimeZonesTime() {
 
 	$timeZonesTimeOption=get_option('TimeZones');
 
-	//at minimum one correct entry
+	//at minimum one entry
 	if ($timeZonesTimeOption) {
 		$counter=0;
 
@@ -313,9 +318,6 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone, $tim
 	$before_tag=stripslashes(get_option($fieldsPre.'before_Tag'));
 	$after_tag=stripslashes(get_option($fieldsPre.'after_Tag'));
 
-	$nowStdDST=timezonecalculator_isStdDST();
-	$nowUSDST=timezonecalculator_isUSDST();
-
 	//as on servers dst might not be activated, daylightsaving is calculated manually
 	$daylightsaving=0;
 
@@ -324,12 +326,14 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone, $tim
 
 		//in standard-daylightsaving zone?
 		if ($ustimezone==0) {
+			$nowStdDST=timezonecalculator_isStdDST($offset);
 			if ($nowStdDST)
 				$daylightsaving=1;
 		}
 
 		//us-daylightsaving zone
 		else {
+			$nowUSDST=timezonecalculator_isUSDST($offset);
 			if ($nowUSDST)
 				$daylightsaving=1;
 		}
@@ -341,12 +345,14 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone, $tim
 
 		//in standard-daylightsaving zone?
 		if ($ustimezone==0) {
+			$nowStdDST=timezonecalculator_isStdDST($offset);
 			if (!$nowStdDST)
 				$daylightsaving=1;
 		}
 
 		//us-daylightsaving zone
 		else {
+			$nowUSDST=timezonecalculator_isUSDST($offset);
 			if (!$nowUSDST)
 				$daylightsaving=1;
 		}
@@ -373,7 +379,7 @@ function getTimeZoneTime($abbrs, $names, $offset, $hemisphere, $ustimezone, $tim
 		$ret="";
 	}
 
-	$ret.=gmdate($timeFormat,(time() + 3600 * ($offset + $daylightsaving)));
+	$ret.=gmdate($timeFormat,(TIMEZONECALCULATOR_CURRENTGMDATE + 3600 * ($offset + $daylightsaving)));
 
 	return $before_tag.$ret.$after_tag;
 }
@@ -385,20 +391,20 @@ created by Matthew Waygood (www.waygoodstuff.co.uk)
 modified by Bernhard Riedl (www.neotrinity.at)
 */
 
-function timezonecalculator_isStdDST() {
-	// UTC time
-	$timestamp = mktime(gmdate("H, i, s, m, d, Y"));
-	$this_year=gmdate("Y", $timestamp);
+function timezonecalculator_isStdDST($offset) {
+	$this_year=gmdate("Y", TIMEZONECALCULATOR_CURRENTGMDATE);
 
-	// last sunday in march at 1am UTC
-	$last_day_of_march=gmmktime(1,0,0,3,31,$this_year);
+	// last sunday in march at utc's 2am for current timezone
+	$last_day_of_march=gmmktime(0,0,0,3,31,$this_year);
 	$last_sunday_of_march=strtotime("-".gmdate("w", $last_day_of_march)." day", $last_day_of_march);
+	$last_sunday_of_march=$last_sunday_of_march+3600*(2-$offset);
    
-	// last sunday in october at 1am UTC
-	$last_day_of_october=gmmktime(1,0,0,10,31,$this_year);
+	// last sunday in october at utc's 2am for current timezone
+	$last_day_of_october=gmmktime(0,0,0,10,31,$this_year);
 	$last_sunday_of_october=strtotime("-".gmdate("w", $last_day_of_october)." day", $last_day_of_october);
+	$last_sunday_of_october=$last_sunday_of_october+3600*(2-$offset);
 
-	if( ($timestamp > $last_sunday_of_march) && ($timestamp < $last_sunday_of_october) )
+	if( ( (TIMEZONECALCULATOR_CURRENTGMDATE) >= $last_sunday_of_march) && ( (TIMEZONECALCULATOR_CURRENTGMDATE) < $last_sunday_of_october) )
 		return true;
 	else
 		return false;
@@ -411,36 +417,37 @@ created by Matthew Waygood (www.waygoodstuff.co.uk)
 modified by Bernhard Riedl (www.neotrinity.at)
 */
 
-function timezonecalculator_isUSDST() {
-	// UTC time
-	$timestamp = mktime(gmdate("H, i, s, m, d, Y"));
-	$this_year=gmdate("Y", $timestamp);
+function timezonecalculator_isUSDST($offset) {
+	$this_year=gmdate("Y", TIMEZONECALCULATOR_CURRENTGMDATE);
 
-	// second sunday in march at 1am UTC
-	$last_day_of_february=gmmktime(1,0,0,2,(28+date("L", $timestamp)),$this_year);
+	// second sunday in march at utc's 2am for current timezone
+	$last_day_of_february=gmmktime(0,0,0,2,(28+date("L", $timestamp)),$this_year);
 	$last_sunday_of_february=strtotime("-".gmdate("w", $last_day_of_february)." day", $last_day_of_february);
-	$second_sunday_of_march=mktime(
-		gmdate("H", $last_sunday_of_february),
-		gmdate("i", $last_sunday_of_february),
-		gmdate("s", $last_sunday_of_february),
+	$second_sunday_of_march=gmmktime(
+		gmdate("H", 0),
+		gmdate("i", 0),
+		gmdate("s", 0),
 		gmdate("m", $last_sunday_of_february),
 		gmdate("d", $last_sunday_of_february)+14,
 		gmdate("Y", $last_sunday_of_february)
 	);
+	$second_sunday_of_march=$second_sunday_of_march+3600*(2-$offset);
    
-	// first sunday in november at 1am UTC
-	$last_day_of_october=gmmktime(1,0,0,10,31,$this_year);
+	// first sunday in november at utc's 2am for current timezone
+	$last_day_of_october=gmmktime(0,0,0,10,31,$this_year);
 	$last_sunday_of_october=strtotime("-".gmdate("w", $last_day_of_october)." day", $last_day_of_october);
-	$first_sunday_of_november=mktime(
-		gmdate("H", $last_sunday_of_october),
-		gmdate("i", $last_sunday_of_october),
-		gmdate("s", $last_sunday_of_october),
+	$first_sunday_of_november=gmmktime(
+		gmdate("H", 0),
+		gmdate("i", 0),
+		gmdate("s", 0),
 		gmdate("m", $last_sunday_of_october),
 		gmdate("d", $last_sunday_of_october)+7,
 		gmdate("Y", $last_sunday_of_october)
 	);
 
-	if( ($timestamp > $second_sunday_of_march) && ($timestamp < $first_sunday_of_november) )
+	$first_sunday_of_november=$first_sunday_of_november+3600*(2-$offset);
+
+	if( ( (TIMEZONECALCULATOR_CURRENTGMDATE) >= $second_sunday_of_march) && ( (TIMEZONECALCULATOR_CURRENTGMDATE) < $first_sunday_of_november) )
 		return true;
 	else
 		return false;

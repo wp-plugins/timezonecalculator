@@ -3,7 +3,7 @@ Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=neo%40neotrinity%2eat&item_name=neotrinity%2eat&no_shipping=1&no_note=1&tax=0&currency_code=USD&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: timezone, daylightsaving, world clock, date, widget, sidebar
 Requires at least: 1.5
-Tested up to: 2.7
+Tested up to: 2.8
 Stable tag: trunk
 
 Calculates times and dates in different timezones with respect to daylight saving on basis of UTC.
