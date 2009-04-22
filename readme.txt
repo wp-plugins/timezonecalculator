@@ -12,7 +12,7 @@ Calculates times and dates in different timezones with respect to daylight savin
 
 Calculates times and dates in different timezones with respect to daylight saving on basis of UTC.
 
-* based on php timezones database (please read the [http://wordpress.org/extend/plugins/timezonecalculator/faq/](faq) for further information)
+* based on php timezones database (please read the [faq](http://wordpress.org/extend/plugins/timezonecalculator/faq/) for further information)
 * fully optionpage-configurable
 * easy to integrate (ships with widget functionality and integrated timezones search function)
 * drag and drop admin menu page
