@@ -70,7 +70,6 @@ With TimeZoneCalculator 1.00 and higher you can also realize a html select which
 	$use_container=true
 )`
 
-
 * `$time_string`: any unix timestamp (where `-1262304000 <= $time_string <= 2145916800`) or any English textual datetime description in the range of `1930-01-01` and `2038-01-01` which can be parsed with [php's strtotime function](http://php.net/manual/en/function.strtotime.php); default is set to current UTC (which can also be automatically updated if activated in the Admin Menu)
 
 * `$timezone_string`: you can choose a [php timezone_string](http://php.net/manual/en/timezones.php); otherwise `UTC` will be used
@@ -99,7 +98,6 @@ Find something similar to
 
 `the_date();`
 
-
 or
 
 `the_time();`
@@ -108,8 +106,7 @@ and replace it with
 
 `<?php getTimeZonesTime(the_date('U', '', '', false)); ?>`
 
-
-This should output your selected timezones, whereas calculations are based on the timestamp of your post instead using the current UTC.
+This should output your selected timezones, whereas calculations are based on the timestamp of your post instead of using the current UTC.
 
 == Screenshots ==
 
