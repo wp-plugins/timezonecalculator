@@ -10,7 +10,7 @@ Calculates, displays and automatically updates times and dates in different time
 
 == Description ==
 
-Calculates times and dates in different timezones with respect to daylight saving on basis of UTC.
+Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 
 **now with AJAX refresh and the possibility to calculate and display dates in the past or future**
 
@@ -70,6 +70,7 @@ With TimeZoneCalculator 1.00 and higher you can also realize a html select which
 	$use_container=true
 )`
 
+
 * `$time_string`: any unix timestamp (where `-1262304000 <= $time_string <= 2145916800`) or any English textual datetime description in the range of `1930-01-01` and `2038-01-01` which can be parsed with [php's strtotime function](http://php.net/manual/en/function.strtotime.php); default is set to current UTC (which can also be automatically updated if activated in the Admin Menu)
 
 * `$timezone_string`: you can choose a [php timezone_string](http://php.net/manual/en/timezones.php); otherwise `UTC` will be used
@@ -84,7 +85,7 @@ With TimeZoneCalculator 1.00 and higher you can also realize a html select which
 
  - `$alt_after_tag`: default `</li>`
 
- - `$alt_timeformat`: default `Y-m-d H:i`
+ - `$alt_timeformat`: default `'Y-m-d H:i'`
 
 * `$alt_timezones`: alternative timezones-array - each array entry has to be a string as described in the Content Section of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
 
@@ -98,6 +99,7 @@ Find something similar to
 
 `the_date();`
 
+
 or
 
 `the_time();`
@@ -105,6 +107,7 @@ or
 and replace it with
 
 `<?php getTimeZonesTime(the_date('U', '', '', false)); ?>`
+
 
 This should output your selected timezones, whereas calculations are based on the timestamp of your post instead using the current UTC.
 
