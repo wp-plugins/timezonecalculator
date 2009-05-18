@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 1.00
+Version: 1.10
 Author URI: http://www.neotrinity.at
 */
 
@@ -39,7 +39,31 @@ called from init hook
 */
 
 function timezonecalculator_init() {
-	DEFINE ('TIMEZONECALCULATOR_PLUGINURL', get_settings('siteurl'). '/'. str_replace( ABSPATH, '', dirname(__FILE__) . '/'));
+
+	/*
+	Pre-2.6 compatibility
+	inspired by http://planetozh.com/blog/2008/07/what-plugin-coders-must-know-about-wordpress-26/
+	*/
+
+	if (!defined('WP_CONTENT_URL'))
+		define('WP_CONTENT_URL', get_option('siteurl') . '/wp-content');
+	if (!defined('WP_PLUGIN_URL'))
+		define('WP_PLUGIN_URL', WP_CONTENT_URL . '/plugins');
+
+	if (!defined('WP_CONTENT_DIR'))
+		define('WP_CONTENT_DIR', ABSPATH . 'wp-content');
+
+	if (!defined('WP_PLUGIN_DIR'))
+		define('WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins');
+
+	/*
+	TimeZoneCalculator Constants
+	*/
+
+	if (function_exists('plugins_url'))
+		DEFINE ('TIMEZONECALCULATOR_PLUGINURL', plugins_url(plugin_basename(dirname(__FILE__))) . '/');
+	else
+		DEFINE ('TIMEZONECALCULATOR_PLUGINURL', WP_PLUGIN_URL . '/'. plugin_basename(dirname(__FILE__)) . '/');
 
 	DEFINE ('TIMEZONECALCULATOR_CURRENTGMDATE', gmdate('U'));
 
@@ -57,11 +81,6 @@ function timezonecalculator_init() {
 		}
 	}
 
-	add_action('wp_head', 'timezonecalculator_ajax_refresh');
-	add_action('wp_head', 'timezonecalculator_wp_head');
-	add_action('admin_head', 'timezonecalculator_wp_head');
-	add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
-	add_filter('plugin_action_links', 'timezonecalculator_adminmenu_plugin_actions', 10, 2);
 }
 
 /*
@@ -72,8 +91,9 @@ function timezonecalculator_ajax_refresh() {
 
 	global $wp_version;
 	if (version_compare($wp_version, "2.1", ">=")) {
-		if(get_option('timezones_Use_Ajax_Refresh')=='1') { 
-			$fieldsPre="timezones_";
+		$fieldsPre="timezones_";
+
+		if(get_option($fieldsPre.'Use_Ajax_Refresh')=='1') { 
 			$refreshTime = get_option($fieldsPre.'Refresh_Time');
 
 			//regex taken from php.net by mark at codedesigner dot nl
@@ -130,7 +150,7 @@ adds a settings link in the plugin-tab
 
 function timezonecalculator_adminmenu_plugin_actions($links, $file) {
 	if ($file == 'timezonecalculator/timezonecalculator.php')
-		$links[] = "<a href='options-general.php?page=timezonecalculator/timezonecalculator.php'>Settings</a>";
+		$links[] = "<a href='options-general.php?page=".plugin_basename(__FILE__)."'>" . __('Settings') . "</a>";
 	return $links;
 }
 
@@ -194,6 +214,54 @@ function timezones_load_admin_selects() {
 <?php } }
 
 /*
+process the admin_color-array
+*/
+
+function timezonecalculator_get_admin_colors() {
+	global $wp_version;
+
+	/*
+	WP 2.3 colors
+	*/
+
+	$processed_admin_colors=array("#14568A", "#14568A", "", "#C3DEF1");
+
+	if (version_compare($wp_version, "2.5", ">=")) {
+
+		/*
+		default colors for >= WP 2.5 (fresh)
+		*/
+
+		$processed_admin_colors=array("#464646", "#6D6D6D", "#F1F1F1", "#DFDFDF");
+
+		$current_color = get_user_option('admin_color');
+		if (strlen($current_color)<1)
+			return $processed_admin_colors;
+
+		$available_admin_colors=array("classic" => array("#073447", "#21759B", "#EAF3FA", "#BBD8E7") );
+
+		/*
+		include user-defined color schemes
+		*/
+
+		global $timezonecalculator_available_admin_colors;
+
+		if (!empty($timezonecalculator_available_admin_colors) && is_array($timezonecalculator_available_admin_colors))
+			foreach($timezonecalculator_available_admin_colors as $key => $available_admin_color)
+				if (is_array($available_admin_color) && sizeof($available_admin_color)==4)
+					$available_admin_colors=array_merge($available_admin_colors, array($key => $timezonecalculator_available_admin_colors[$key]));
+
+		if (!array_key_exists($current_color, $available_admin_colors))
+			return $processed_admin_colors;
+		else
+			return $available_admin_colors[$current_color];
+
+	}
+
+	return $processed_admin_colors;
+}
+
+/*
 loads the necessary css-styles
 for the admin-page
 */
@@ -203,31 +271,7 @@ function timezones_admin_head() {
 
 	if (version_compare($wp_version, "2.1", ">=")) {
 		timezones_load_admin_selects();
-	}
-
-	$current_wp_admin_css_colors=array();
-
-	/*
-	check if wordpress_admin_themes are available
-	*/
-
-	if (version_compare($wp_version, "2.5", ">=")) {
-		global $_wp_admin_css_colors;
-
-		$current_color = get_user_option('admin_color');
-		if ( empty($current_color) )
-			$current_color = 'fresh';
-
-		$current_wp_admin_css_colors=$_wp_admin_css_colors[$current_color]->colors;
-
-	}
-
-	/*
-	if themes are not available, use default colors
-	*/
-
-	if (sizeof($current_wp_admin_css_colors)<4) {
-		$current_wp_admin_css_colors=array("#14568a", "#14568a", "", "#c3def1");
+		$timezonecalculator_admin_css_colors=timezonecalculator_get_admin_colors();
 	}
 
 ?>
@@ -243,15 +287,15 @@ function timezones_admin_head() {
 ?>
 
       li.timezones_sortablelist {
-		background-color: <?php echo $current_wp_admin_css_colors[1]; ?>;
-		color: <?php echo $current_wp_admin_css_colors[3]; ?>;
+		background-color: <?php echo $timezonecalculator_admin_css_colors[1]; ?>;
+		color: <?php echo $timezonecalculator_admin_css_colors[3]; ?>;
 		cursor : move;
 		padding: 3px 5px 3px 5px;
       }
 
       ul.timezones_sortablelist {
 		float: left;
-		border: 1px <?php echo $current_wp_admin_css_colors[0]; ?> solid;
+		border: 1px <?php echo $timezonecalculator_admin_css_colors[0]; ?> solid;
 		list-style-image : none;
 		list-style-type : none;
 		margin: 10px 20px 20px 0px;
@@ -266,15 +310,6 @@ function timezones_admin_head() {
 		width: 400px;
 		padding: 5px;
       }
-
-	#timezones_DragandDrop_Edit_Label {
-		background-color: <?php echo $current_wp_admin_css_colors[1]; ?>;
-		color: <?php echo $current_wp_admin_css_colors[3]; ?>;
-	}
-
-	#timezones_DragandDrop_Edit_Message {
-		color: <?php echo $current_wp_admin_css_colors[0]; ?>;
-	}
 
 	img.timezones_arrowbutton {
 		vertical-align: bottom;
@@ -299,12 +334,44 @@ function timezones_admin_head() {
 }
 
 /*
+add dashboard widget
+*/
+
+function timezonecalculator_add_dashboard_widget() {
+	if (function_exists('wp_add_dashboard_widget'))
+		wp_add_dashboard_widget('timezonecalculator_dashboard_widget', 'TimeZoneCalculator', 'getTimeZonesTime');
+} 
+
+/*
 called from widget_init hook
 */
 
 function widget_timezonecalculator_init() {
-	register_sidebar_widget(array('TimeZoneCalculator', 'widgets'), 'widget_timezonecalculator');
-	register_widget_control(array('TimeZoneCalculator', 'widgets'), 'widget_timezonecalculator_control', 300, 100);
+
+	/*
+	WP >= 2.8
+	*/
+
+	if(in_array('WP_Widget', get_declared_classes())) {
+		$widgetFile=WP_PLUGIN_DIR.'/'.plugin_basename(dirname(__FILE__)).'/timezonecalculator_widget.php';
+
+		if (file_exists($widgetFile)) {
+			include($widgetFile);
+			register_widget('WP_Widget_TimeZoneCalculator');
+		}
+	}
+
+	/*
+	WP < 2.8
+	*/
+
+	else {
+		$plugin_name="TimeZoneCalculator";
+		$widgets="widgets";
+
+		register_sidebar_widget(array($plugin_name, $widgets), 'widget_timezonecalculator');
+		register_widget_control(array($plugin_name, $widgets), 'widget_timezonecalculator_control', 300, 100);
+	}
 }
 
 /*
@@ -312,7 +379,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"1.00\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"1.10\" />\n");
 }
 
 /*
@@ -348,15 +415,14 @@ function widget_timezonecalculator_control() {
 
 		$title = htmlspecialchars($options['title'], ENT_QUOTES);
 		
-		echo '<p style="text-align:right;"><label for="timezonecalculator-title">' . __('Title:') . ' <input style="width: 200px;" id="timezonecalculator-title" name="timezonecalculator-title" type="text" value="'.$title.'" /></label></p>';
+		echo '<p>' . __('Title:') . ' <input id="timezonecalculator-title" name="timezonecalculator-title" type="text" value="'.$title.'" /></p>';
 		echo '<input type="hidden" id="timezonecalculator-submit" name="timezonecalculator-submit" value="1" />';
-		echo '<p style="text-align:left;"><label for="timezonecalculator-options">Find the options <a href="options-general.php?page=timezonecalculator/timezonecalculator.php">here</a>!</label></p>';
+		echo '<p><a href="options-general.php?page='.plugin_basename(__FILE__).'">'. __('Settings') . '</a></p>';
 	}
 
 /*
 checks and transforms a time-string and a timezone-string into a unix timestamp
 */
-
 
 function timezonecalculator_calculateDate($time_string, $timezone_string) {
 	$myDate=false;
@@ -501,7 +567,7 @@ function getTimeZonesTime($time_string='', $timezone_string='UTC', $alt_style=fa
 		$currentTimeStamp=timezonecalculator_calculateDate($time_string, $timezone_string);
 
 		if ($currentTimeStamp===false) {
-			timezonecalculator_getErrorMessageBlock('Either the Time-String or the TimeZone-String are not correct!', $before_list_container, $after_list_container, $before_list, $after_list, $before_tag, $after_tag);
+			timezonecalculator_getErrorMessageBlock('Either the Time-String or the TimeZone-String is not correct!', $before_list_container, $after_list_container, $before_list, $after_list, $before_tag, $after_tag);
 
 			return;
 		}
@@ -571,7 +637,7 @@ function getTimeZonesTime($time_string='', $timezone_string='UTC', $alt_style=fa
 	}
 
 	else {
-		timezonecalculator_getErrorMessage("No Timezones to display...", $before_tag, $after_tag);
+		timezonecalculator_getErrorMessage("No Timezones to display yet...", $before_tag, $after_tag);
 	}
 
 	echo($after_list);
@@ -888,8 +954,8 @@ function TimeZoneCalculatorOptionPageActionButtons($num) {
 
 	if (version_compare($wp_version, "2.1", ">=")) { ?>
 	    <div id="timezones_actionbuttons_<?php echo($num); ?>" class="submit" style="display:none">
-      	<input type="button" id="info_update_click<?php echo($num); ?>" name="info_update_click<?php echo($num); ?>" value="<?php _e('Update options') ?>" />
-	      <input type="button" id="load_default_click<?php echo($num); ?>" name="load_default_click<?php echo($num); ?>" value="<?php _e('Load defaults') ?>" />
+      	<input type="button" id="info_update_click<?php echo($num); ?>" name="info_update_click<?php echo($num); ?>" value="<?php echo('Update options') ?>" />
+	      <input type="button" id="load_default_click<?php echo($num); ?>" name="load_default_click<?php echo($num); ?>" value="<?php echo('Load defaults') ?>" />
 	    </div>
 <?php }
 
@@ -950,7 +1016,7 @@ function createTimeZoneCalculatorOptionPage() {
         }
 
         ?><div class="updated"><p><strong>
-        <?php _e('Configuration changed!<br /><br />Have a look at <a href="#'.$fieldsPre.'Preview">the preview</a>!')?></strong></p></div>
+        <?php echo('Configuration changed!<br /><br />Have a look at <a href="#'.$fieldsPre.'Preview">the preview</a>!')?></strong></p></div>
       <?php }
 
       elseif (isset($_POST['load_default'])) {
@@ -969,14 +1035,14 @@ function createTimeZoneCalculatorOptionPage() {
         }
 
         ?><div class="updated"><p><strong>
-        <?php _e('Defaults loaded!')?></strong></p></div>
+        <?php echo('Defaults loaded!')?></strong></p></div>
 
       <?php }
 
       elseif (isset($_POST['set_time'])) {
 
         ?><div class="updated"><p><strong>
-        <?php _e('Time for TimeZoneCalculator has been temporarly set!<br /><br />Have a look at <a href="#'.$fieldsPre.'Preview">the preview</a>!')?></strong></p></div>
+        <?php echo('Time for TimeZoneCalculator has been temporarly set!<br /><br />Have a look at <a href="#'.$fieldsPre.'Preview">the preview</a>!')?></strong></p></div>
 
       <?php }
 
@@ -987,7 +1053,7 @@ function createTimeZoneCalculatorOptionPage() {
 	  timezonecalculator_uninstall();
 
         ?><div class="updated"><p><strong>
-        <?php _e('Settings deleted!')?></strong></p></div>
+        <?php echo('Settings deleted!')?></strong></p></div>
 
       <?php }
 
@@ -1092,11 +1158,11 @@ Hint: Information about cities and their timezones can be searched below.</li>
         <li>Style-customizations can be made in the <a href="#<?php echo($fieldsPre); ?>CSS_Tags">CSS-Tags Section</a>. (Defaults are automatically populated via the <strong>Load defaults</strong> button)</li>
         <li>You can activate an optional Ajax refresh for automatical updates of your timezones-output in the <a href="#<?php echo($fieldsPre); ?>Administrative_Options">Administrative Options Section</a>.</li>
         <li>Before you publish the results you can use the <a href="#<?php echo($fieldsPre); ?>Preview">Preview Section</a>.</li>
-        <li>Finally, you can publish the previously selected and saved timezones either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the php function <code>getTimeZonesTime()</code> wherever you like.</li>
+        <li>Finally, you can publish the previously selected and saved timezones either by adding a <a href="widgets.php">Sidebar Widget</a> or by calling the php function <code>getTimeZonesTime()</code> wherever you like.<?php if (version_compare($wp_version, "2.7", ">=")) { ?> Moreover you can also display your current timezone-selection as <a href="index.php">Dashboard Widget</a>.<?php } ?></li>
         <li>By temporarily setting date and time in the <a href="#<?php echo($fieldsPre); ?>Calculation">Calculation Section</a>, you can check a certain timestamp in different timezones.</li>
     <?php
 	if (!function_exists('register_uninstall_hook')) { ?>
-        <li>If you decide to uninstall TimeZoneCalculator firstly remove the optionally added <a href="widgets.php">Sidebar Widget</a> or the integrated php function call(s) and secondly  <a href="?page=timezonecalculator/timezonecalculator.php&amp;cleanup=true" onclick="javascript:return confirm('Are you sure you want to delete all your settings?')">click here</a> to clean up the database, then disable it in the <a href="plugins.php">Plugins Tab</a> and delete the <code>timezonecalculator</code> directory in your WordPress Plugins directory (usually wp-content/plugins) on your webserver.</li>
+        <li>If you decide to uninstall TimeZoneCalculator firstly remove the optionally added <a href="widgets.php">Sidebar Widget</a> or the integrated php function call(s) and secondly <a href="?page=<?php echo(plugin_basename(__FILE__)); ?>&amp;cleanup=true" onclick="javascript:return confirm('Are you sure you want to delete all your settings?')">click here</a> to clean up the database, then disable it in the <a href="plugins.php">Plugins Tab</a> and delete the <code>timezonecalculator</code> directory in your WordPress Plugins directory (usually wp-content/plugins) on your webserver.</li>
     <?php }
 	else { ?>
         <li>If you decide to uninstall TimeZoneCalculator firstly remove the optionally added <a href="widgets.php">Sidebar Widget</a> or the integrated php function call(s) and secondly disable and delete it in the <a href="plugins.php">Plugins Tab</a>.</li>
@@ -1224,7 +1290,7 @@ Hint: Information about cities and their timezones can be searched below.</li>
 
 <?php } ?>
 
-       <form action="options-general.php?page=timezonecalculator/timezonecalculator.php" method="post">
+       <form action="options-general.php?page=<?php echo(plugin_basename(__FILE__)); ?>" method="post">
 
           <a name="<?php echo($fieldsPre); ?>Content"></a><h2><?php if (version_compare($wp_version, "2.1", ">=")) { timezonecalculator_open_close_section($fieldsPre.'Content_Section', $sections['Content_Section']); } ?>Content</h2>
 
@@ -1301,7 +1367,7 @@ In this section you can customize the layout of <a href="#<?php echo($fieldsPre)
      		foreach ($csstags as $csstag) {
           		echo("<tr>");
             	echo("<td><label for=\"".$fieldsPre.$csstag."\">");
-            	_e($csstag);
+            	echo($csstag);
             	echo("</label></td>");
               	echo("<td><input type=\"text\" size=\"30\" maxlength=\"50\" name=\"".$fieldsPre.$csstag."\" id=\"".$fieldsPre.$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($fieldsPre.$csstag)))."\" /></td>");
        	   	echo("</tr>");
@@ -1334,12 +1400,12 @@ In this section you can enable and customize the Ajax-Refresh of TimeZoneCalcula
 As all timezone-information is retrieved from the server on every refresh, a Refresh_Time of one second is mostly not realizable for the average server out there. Moreover, please remember that every update causes bandwith usage for your readers and your host.
     <table class="form-table">
      <tr>
-        <td><label for ="<?php echo($fieldsPre.$Use_Ajax_Refresh); ?>"><?php _e($Use_Ajax_Refresh.'') ?></label></td>
+        <td><label for ="<?php echo($fieldsPre.$Use_Ajax_Refresh); ?>"><?php echo($Use_Ajax_Refresh.'') ?></label></td>
             <td><input type="checkbox" onclick="timezones_toggleAjaxRefreshFields(this, '<?php echo($Refresh_Time); ?>');" name="<?php echo($fieldsPre.$Use_Ajax_Refresh); ?>" id="<?php echo($fieldsPre.$Use_Ajax_Refresh); ?>" <?php if(get_option($fieldsPre.$Use_Ajax_Refresh)==1) echo('checked="checked"'); ?> /></td>
       </tr>
 
      <tr>
-        <td><label for="<?php echo($fieldsPre.$Refresh_Time); ?>"><?php _e($Refresh_Time.' (in seconds)') ?></label></td>
+        <td><label for="<?php echo($fieldsPre.$Refresh_Time); ?>"><?php echo($Refresh_Time.' (in seconds)') ?></label></td>
             <td><input type="text" onblur="timezones_checkNumeric(this,1,3600,'','','',true);" size="8" maxlength="8" name="<?php echo($fieldsPre.$Refresh_Time); ?>" <?php if(get_option($fieldsPre.$Use_Ajax_Refresh)!=1) echo('disabled="disabled"'); ?> id="<?php echo($fieldsPre.$Refresh_Time); ?>" value="<?php echo get_option($fieldsPre.$Refresh_Time); ?>" /></td>
       </tr>
     </table>
@@ -1442,7 +1508,7 @@ in
 	</table>
 
     <div class="submit">
-      <input type="submit" name="set_time" id="set_time" value="<?php _e('set time') ?>" />
+      <input type="submit" name="set_time" id="set_time" value="<?php echo('set time') ?>" />
     </div>
 
 	  </div>
@@ -1479,8 +1545,8 @@ else
 ?>
 
     <div class="submit">
-      <input type="submit" name="info_update" id="info_update" value="<?php _e('Update options') ?>" />
-      <input type="submit" name="load_default" id="load_default" value="<?php _e('Load defaults') ?>" />
+      <input type="submit" name="info_update" id="info_update" value="<?php echo('Update options') ?>" />
+      <input type="submit" name="load_default" id="load_default" value="<?php echo('Load defaults') ?>" />
     </div>
 
     <?php
@@ -2102,14 +2168,21 @@ else
 
        </script>
 
-	 <?php 
-		timezonecalculator_ajax_refresh();
-	}
-
-}
+	 <?php } }
 
 add_action('init', 'timezonecalculator_init');
 add_action('widgets_init', 'widget_timezonecalculator_init');
+
+add_action('wp_head', 'timezonecalculator_ajax_refresh');
+add_action('wp_head', 'timezonecalculator_wp_head');
+
+add_action('admin_head', 'timezonecalculator_ajax_refresh');
+add_action('admin_head', 'timezonecalculator_wp_head');
+add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
+
+add_action('wp_dashboard_setup', 'timezonecalculator_add_dashboard_widget' );
+
+add_filter('plugin_action_links', 'timezonecalculator_adminmenu_plugin_actions', 10, 2);
 
 if ( function_exists('register_uninstall_hook') )	register_uninstall_hook( __FILE__, 'timezonecalculator_uninstall' );
 
