@@ -52,9 +52,9 @@ This section is based on internal WordPress Javascript-libraries, which means th
 
 = How can I adopt the color scheme in the TimeZoneCalculator Settings Tab for WordPress 2.5 and higher? =
 
-If you select one of the two default color schemes (`Blue = classic` or `Gray = fresh`) in your Profile Page, TimeZoneCalculator automatically adopts its colors to this scheme.
+If you select one of the two default color schemes (`classic = Blue` or `fresh = Gray`) in your Profile Page, TimeZoneCalculator automatically adopts its colors to this scheme.
 
-In case you use a custom color scheme, this cannot be done automatically, because WordPress still doesn't provide any proper functions to find out, which colors of your scheme are used for background, font, etc. - Nevertheless, you can set up your preferred colors manually: Just add the [global](http://php.net/manual/en/language.variables.scope.php) variable `$timezonecalculator_available_admin_colors` in either timezonecalculator.php or in your custom-colors-plugin.
+In case you use a custom color scheme, this cannot be done automatically, because WordPress still doesn't provide any proper functions to find out, which colors of your scheme are used for background, font, etc. - Nevertheless, you can set up your preferred colors manually: Just add the [filter](http://codex.wordpress.org/Function_Reference/add_filter) `timezonecalculator_available_admin_colors` in for example timezonecalculator.php or in your custom-colors-plugin.
 
 Array-Structure:
 
@@ -62,7 +62,14 @@ Array-Structure:
 * 2 -> background-color of drag and drop menu items
 * 4 -> text-color of drag and drop menu items
 
-Example: `$timezonecalculator_available_admin_colors = array("custom_scheme" => array("#14568A", "#14568A", "", "#C3DEF1"));`
+Example:
+
+`function my_timezonecalculator_available_admin_colors($colors=array()) {
+	$colors["custom_scheme"] = array("#14568A", "#14568A", "", "#C3DEF1");
+	return $colors;
+}
+
+add_filter('timezonecalculator_available_admin_colors', 'my_timezonecalculator_available_admin_colors');`
 
 == Further Usage ==
 
