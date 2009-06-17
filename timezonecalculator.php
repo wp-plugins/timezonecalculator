@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 1.12
+Version: 1.13
 Author URI: http://www.neotrinity.at
 */
 
@@ -114,7 +114,7 @@ function timezonecalculator_ajax_refresh() {
 	function timezones_refresh() {
 		var params = 'timezonecalculator-refresh=1';
 		new Ajax.Request(
-			'<?php echo(get_settings('home'). '/'); ?>',
+			'<?php echo(get_option('home'). '/'); ?>',
 			{
 				method: 'post',
 				parameters: params,
@@ -375,11 +375,13 @@ called from widget_init hook
 
 function widget_timezonecalculator_init() {
 
+	global $wp_version;
+
 	/*
 	WP >= 2.8
 	*/
 
-	if(in_array('WP_Widget', get_declared_classes())) {
+	if(version_compare($wp_version, "2.8", ">=")) {
 		$widgetFile=WP_PLUGIN_DIR.'/'.plugin_basename(dirname(__FILE__)).'/timezonecalculator_widget.php';
 
 		if (file_exists($widgetFile)) {
@@ -406,7 +408,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"1.12\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"1.13\" />\n");
 }
 
 /*
@@ -646,7 +648,7 @@ function getTimeZonesTime($time_string='', $timezone_string='UTC', $alt_style=fa
 				$dateTimeZone=timezonecalculator_checkData($timeZoneTime);
 
 				//data-check failed
-				if ($dateTimeZone<0) {				
+				if (!is_object($dateTimeZone)) {
 					timezonecalculator_getErrorMessage("Sorry, could not read timezones-entry ".$counter.": ".$errors[abs($dateTimeZone)-1], $before_tag, $after_tag);
 				}
 
@@ -879,6 +881,8 @@ function timezonecalculator_get_section_link($section, $allSections, $section_ni
 
 	$fieldsPre="timezones_";
 	$sectionPost='_Section';
+
+	$menuitem_onclick='';
 
 	if (strlen($section_nicename)<1)
 		$section_nicename=str_replace('_', ' ', $section);
