@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 1.13
+Version: 1.14
 Author URI: http://www.neotrinity.at
 */
 
@@ -361,6 +361,27 @@ function timezones_admin_head() {
 }
 
 /*
+adds some css to format timezonecalculator on the dashboard
+*/
+
+function timezones_add_dashboard_widget_css() {
+
+?>
+
+	<style type="text/css">
+
+	.timezonecalculator-refreshable-output {
+		font-size:11px;
+		line-height:140%;
+	}
+
+      </style>
+
+<?php
+
+}
+
+/*
 add dashboard widget
 */
 
@@ -408,7 +429,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"1.13\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"1.14\" />\n");
 }
 
 /*
@@ -2281,6 +2302,8 @@ add_action('admin_head', 'timezonecalculator_wp_head');
 add_action('admin_menu', 'addTimeZoneCalculatorOptionPage');
 
 add_action('wp_dashboard_setup', 'timezonecalculator_add_dashboard_widget' );
+
+add_action('admin_head-index.php', 'timezones_add_dashboard_widget_css');
 
 add_filter('plugin_action_links', 'timezonecalculator_adminmenu_plugin_actions', 10, 2);
 
