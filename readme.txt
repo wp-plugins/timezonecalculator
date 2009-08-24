@@ -2,7 +2,7 @@
 Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=neo%40neotrinity%2eat&item_name=neotrinity%2eat&no_shipping=1&no_note=1&tax=0&currency_code=USD&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, ajax, javascript, prototype
-Requires at least: 1.5
+Requires at least: 2.8
 Tested up to: 2.9
 Stable tag: trunk
 
@@ -20,7 +20,10 @@ Calculates, displays and automatically updates times and dates in different time
 * drag and drop admin menu page
 * clean uninstall
 
-Attention! - Since version 0.90 you need to have PHP with the timezones-libraries installed in order to use TimeZoneCalculator. If you do not have a suiting environment please consider using the [last version with built-in calculation](http://downloads.wordpress.org/plugin/timezonecalculator.last_version_with_built-in_calculations.zip).
+Please find the version for WordPress
+
+* 2.8 and higher [here](http://downloads.wordpress.org/plugin/timezonecalculator.zip)
+* 1.5 to 2.7 [here](http://downloads.wordpress.org/plugin/timezonecalculator.wordpress1.5-2.7.zip)
 
 == Installation ==
 
