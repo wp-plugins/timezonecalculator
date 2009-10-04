@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 1.21
+Version: 1.22
 Author URI: http://www.neotrinity.at
 */
 
@@ -346,7 +346,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"1.21\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"1.22\" />\n");
 }
 
 /*
@@ -1888,19 +1888,25 @@ else
 	 function timezones_appendEntry() {
 
 		var timezones_newentry="timezones_newentry_";
+		var idtochange=document.getElementById(timezones_newentry+'idtochange').value;
 
 		document.getElementById(timezones_newentry+'SuccessLabel').style.display='none';
 
 		var errormsg="";
 		//check for ; in fields as we don't wont to break the timezones-syntax
+		//check for " in new entry fields as we don't wont to break the html-syntax
 		for (var i=0; i<timezones_abbr_fields.length; i++) {
 			if (document.getElementById(timezones_newentry+timezones_abbr_fields[i]).value.indexOf(';')>-1)
 				errormsg+="\n - Semicolons are not allowed in Field "+timezones_abbr_fields[i];
+			if ((idtochange.length==0) && (document.getElementById(timezones_newentry+timezones_abbr_fields[i]).value.indexOf('"')>-1))
+				errormsg+="\n - Double Quotes are not allowed in Field "+timezones_abbr_fields[i]+" for new entries - Please add without them and edit afterwards";
 		}
 
 		for (var i=0; i<timezones_name_fields.length; i++) {
 			if ( document.getElementById(timezones_newentry+timezones_name_fields[i]).value.indexOf(';')>-1)
 				errormsg+="\n - Semicolons are not allowed in Field "+timezones_name_fields[i];
+			if ((idtochange.length==0) && (document.getElementById(timezones_newentry+timezones_name_fields[i]).value.indexOf('"')>-1))
+				errormsg+="\n - Double Quotes are not allowed in Field "+timezones_name_fields[i]+" for new entries - Please add without them and edit afterwards";
 		}
 
 		//check for empty std abbreviation field
@@ -1933,8 +1939,6 @@ else
 				timezones_newentry_name_daylightsaving+";"+
 				timezones_newentry_use_db_abbreviations+";"+
 				timezones_newentry_use_db_names;
-
-			var idtochange=document.getElementById(timezones_newentry+'idtochange').value;
 
 			/*
 			change timezone attributes
