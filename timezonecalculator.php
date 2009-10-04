@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 1.20
+Version: 1.21
 Author URI: http://www.neotrinity.at
 */
 
@@ -141,7 +141,7 @@ function timezones_admin_print_scripts() {
 	wp_enqueue_script('prototype');
 	wp_enqueue_script('scriptaculous-dragdrop');
 	wp_enqueue_script('scriptaculous-effects');
-	wp_enqueue_script('datepicker', TIMEZONECALCULATOR_PLUGINURL.'datepicker/datepicker.js');
+	wp_enqueue_script('datepicker', TIMEZONECALCULATOR_PLUGINURL.'date-picker/js/datepicker.js');
 }
 
 /*
@@ -300,7 +300,7 @@ function timezones_admin_head() {
 
       </style>
 
-<link rel='stylesheet' href='<?php echo(TIMEZONECALCULATOR_PLUGINURL); ?>datepicker/datepicker.css' type='text/css' />
+<link rel='stylesheet' href='<?php echo(TIMEZONECALCULATOR_PLUGINURL); ?>date-picker/css/datepicker.css' type='text/css' />
 
 <?php }
 
@@ -346,7 +346,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"1.20\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"1.21\" />\n");
 }
 
 /*
@@ -448,13 +448,13 @@ function getTimeZonesTime($time_string='', $timezone_string='UTC', $alt_style=fa
 	*/
 
 	if ($alt_style===false) {
-		$before_list=stripslashes(get_option($fieldsPre.'before_List'));
-		$after_list=stripslashes(get_option($fieldsPre.'after_List'));
+		$before_list=get_option($fieldsPre.'before_List');
+		$after_list=get_option($fieldsPre.'after_List');
 
-		$before_tag=stripslashes(get_option($fieldsPre.'before_Tag'));
-		$after_tag=stripslashes(get_option($fieldsPre.'after_Tag'));
+		$before_tag=get_option($fieldsPre.'before_Tag');
+		$after_tag=get_option($fieldsPre.'after_Tag');
 
-		$timeFormat=stripslashes(get_option($fieldsPre.'Time_Format'));
+		$timeFormat=get_option($fieldsPre.'Time_Format');
 		if (strlen($timeFormat)<1)
 			$timeFormat="Y-m-d H:i";
 		}
@@ -647,9 +647,9 @@ function getTimeZoneTime($dateTimeZone, $abbrs, $names, $use_db_abbr, $use_db_na
 			$name=$names[$daylightsaving];
 
 		if ($display_name===true && strlen($name)>0)
-			$ret="<abbr title=\"".$name."\">".$abbr."</abbr>";
+			$ret="<abbr title=\"".htmlspecialchars($name, ENT_QUOTES)."\">".htmlspecialchars($abbr, ENT_QUOTES)."</abbr>";
 		else
-			$ret=$abbr;
+			$ret=htmlspecialchars($abbr, ENT_QUOTES);
 
 		$ret.=": ";
 	}
@@ -946,10 +946,10 @@ function createTimeZoneCalculatorOptionPage() {
     if (isset($_POST['info_update'])) {
 
         foreach ($csstags as $csstag) {
-            update_option($fieldsPre.$csstag, $_POST[$fieldsPre.$csstag]);
+            update_option($fieldsPre.$csstag, stripslashes($_POST[$fieldsPre.$csstag]));
         }
 
-        update_option('TimeZones', $_POST['TimeZones']);
+        update_option('TimeZones', stripslashes($_POST['TimeZones']));
 
 	if (isset($_POST[$fieldsPre.$Use_Ajax_Refresh])) {
 	  update_option($fieldsPre.$Use_Ajax_Refresh, '1');
@@ -1047,7 +1047,7 @@ function createTimeZoneCalculatorOptionPage() {
 
 					$otherOptions='<input type="hidden" value="';
 					if (sizeof($timeZoneTime)==7) {
-						$otherOptions.=trim(implode(';',array_slice($timeZoneTime, 1)));
+						$otherOptions.=htmlspecialchars(trim(implode(';',array_slice($timeZoneTime, 1))), ENT_QUOTES);
 					}
 					else {
 						$otherOptions.=';;;;1;1';
@@ -1290,7 +1290,7 @@ Hint: Information about cities and their timezones can be searched below.</li>
     <table class="form-table">
 
      		<tr><td><label for="TimeZones">TimeZones</label></td>
-          	<td><textarea name="TimeZones" id="TimeZones" cols="90" rows="5"><?php echo(get_option('TimeZones')); ?></textarea></td>
+          	<td><textarea name="TimeZones" id="TimeZones" cols="90" rows="5"><?php echo(htmlspecialchars(get_option('TimeZones'))); ?></textarea></td>
 		</tr>
 
 	</table>
@@ -1321,7 +1321,7 @@ In this section you can customize the layout of <?php echo(timezonecalculator_ge
             	echo("<td><label for=\"".$fieldsPre.$csstag."\">");
             	echo($csstag);
             	echo("</label></td>");
-              	echo("<td><input type=\"text\" size=\"30\" maxlength=\"50\" name=\"".$fieldsPre.$csstag."\" id=\"".$fieldsPre.$csstag."\" value=\"".htmlspecialchars(stripslashes(get_option($fieldsPre.$csstag)))."\" /></td>");
+              	echo("<td><input type=\"text\" size=\"30\" maxlength=\"50\" name=\"".$fieldsPre.$csstag."\" id=\"".$fieldsPre.$csstag."\" value=\"".htmlspecialchars(get_option($fieldsPre.$csstag), ENT_QUOTES)."\" /></td>");
        	   	echo("</tr>");
 	      } ?>
 
@@ -1372,21 +1372,47 @@ In this section you can specify a certain timestamp, which will be displayed in 
 
 Please note, that your selected time will only be visible in your Admin Menu and will not influence any time(zone)-settings on your server or in your php configuration! This section is meant to be your personal calculator (e.g. for checking flight schedules or finding online friends in other timezones) and will not change the timezone information on your blog.<br /><br />
 
-Chosing your certain date can be done by either picking it on the calender or entering it in a commonly used format.
+Chosing your date can be done by either picking it on the calender or entering it in <a target="_blank" href="http://www.w3.org/QA/Tips/iso-date">ISO format (yyyy-mm-dd)</a> as well as <a target="_blank" href="http://en.wikipedia.org/wiki/Calendar_date#mm.2Fdd.2Fyy_or_mm.2Fdd.2Fyyyy_.28month.2C_day.2C_year.29">American date format (mm/dd/yyyy)</a>.
 
     <table class="form-table">
 
 <?php
 	$timezones_calculation="timezones_calculation_";
 	$timezones_calculation_pickdate=$timezones_calculation."pickdate_";
-
-	/* DatePicker v4.4 by frequency-decoder.com
-	http://www.frequency-decoder.com/2009/02/03/unobtrusive-date-	picker-widget-v4
-	*/
 ?>
 
-     		<tr><td><label for="dt">Date</label></td>
-          	<td><input type="text" name="dt" id="dt" class="dateformat-Y-ds-m-ds-d range-low-19300101 range-high-20371231 fill-grid" size="20" maxlength="20" /> at 
+	<tr><td><label for="<?php echo($timezones_calculation_pickdate.'Date'); ?>">Date</label></td>
+	<td><input type="text" name="<?php echo($timezones_calculation_pickdate.'Date'); ?>" id="<?php echo($timezones_calculation_pickdate.'Date'); ?>" size="20" maxlength="20" /> at 
+
+	<script type="text/javascript" language="javascript">
+
+	/* <![CDATA[ */
+
+	/* DatePicker v5.3 by frequency-decoder.com
+	http://www.frequency-decoder.com/2009/09/09/unobtrusive-date-picker-widget-v5
+	*/
+
+	/*
+	set date-formats for datepicker to
+	+ yyyy-mm-dd (added by format)
+	+ mm/dd/yyyy
+	*/
+
+	var opts = {
+		formElements:{"<?php echo($timezones_calculation_pickdate.'Date'); ?>":"Y-ds-m-ds-d"},
+		highlightDays:[0,0,0,0,0,1,1],
+		fillGrid:true,
+		rangeLow:"19300101",
+		rangeHigh:"20371231",
+		constrainSelection:false,
+		dateFormats:{"<?php echo($timezones_calculation_pickdate.'Date'); ?>":["m-sl-d-sl-Y"]}
+	};
+
+	datePickerController.createDatePicker(opts);
+
+	/* ]]> */
+
+	</script>
 
 <?php 
 
@@ -1476,8 +1502,8 @@ if the time has been set in the backend
 */
 
 if (isset($_POST['set_time'])) {
-	if (isset($_POST['dt']) && strlen($_POST['dt'])==10 ) {
-		$myTime=$_POST['dt'].' '.$_POST[$timezones_calculation_pickdate.'Hour'].':'.$_POST[$timezones_calculation_pickdate.'Minute'];
+	if (isset($_POST[$timezones_calculation_pickdate.'Date']) && strlen($_POST[$timezones_calculation_pickdate.'Date'])==10 ) {
+		$myTime=$_POST[$timezones_calculation_pickdate.'Date'].' '.$_POST[$timezones_calculation_pickdate.'Hour'].':'.$_POST[$timezones_calculation_pickdate.'Minute'];
 		$myTimeZone=$_POST[$timezones_calculation_pickdate.'Timezone'];
 	}
 	elseif (isset($_POST[$timezones_calculation.'DateTime']) && strlen($_POST[$timezones_calculation.'DateTime'])>2 ) {
@@ -1511,19 +1537,6 @@ else
       <script type="text/javascript" language="javascript">
 
       /* <![CDATA[ */
-
-	/*
-	set date-formats for datepicker to
-	+ yyyy-mm-dd (added by class dateformat)
-	+ mm/dd/yyyy
-	+ dd-mm-yyyy
-	+ dd.mm.yyyy
-	*/
-
-	var params = {
-		"formats":["m-sl-d-sl-Y","d-ds-m-ds-Y","d-dt-m-dt-Y"]
-	};
-	datePickerController.setGlobalVars(params);
 
 	 function timezones_search_timeanddate_openWindow() {
 		window.open('http://www.timeanddate.com/search/results.html?query='+document.getElementById('timezones_search_timeanddate_query').value,'timeanddate','width=600,height=400,top=200,left=200,toolbar=yes,location=yes,directories=np,status=yes,menubar=no,scrollbars=yes,copyhistory=no,resizable=yes');
