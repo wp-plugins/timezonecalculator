@@ -1895,12 +1895,12 @@ else
 		//check for ; in fields as we don't wont to break the timezones-syntax
 		for (var i=0; i<timezones_abbr_fields.length; i++) {
 			if (document.getElementById(timezones_newentry+timezones_abbr_fields[i]).value.indexOf(';')>-1)
-				errormsg+="\n - Semilokons are not allowed in Field "+timezones_abbr_fields[i];
+				errormsg+="\n - Semicolons are not allowed in Field "+timezones_abbr_fields[i];
 		}
 
 		for (var i=0; i<timezones_name_fields.length; i++) {
 			if ( document.getElementById(timezones_newentry+timezones_name_fields[i]).value.indexOf(';')>-1)
-				errormsg+="\n - Semilokons are not allowed in Field "+timezones_name_fields[i];
+				errormsg+="\n - Semicolons are not allowed in Field "+timezones_name_fields[i];
 		}
 
 		//check for empty std abbreviation field
