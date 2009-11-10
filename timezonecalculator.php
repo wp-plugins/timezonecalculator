@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving on basis of UTC.
 Author: Bernhard Riedl
-Version: 1.22
+Version: 1.23
 Author URI: http://www.neotrinity.at
 */
 
@@ -346,7 +346,7 @@ adds metainformation - please leave this for stats!
 */
 
 function timezonecalculator_wp_head() {
-  echo("<meta name=\"TimeZoneCalculator\" content=\"1.22\" />\n");
+  echo("<meta name=\"TimeZoneCalculator\" content=\"1.23\" />\n");
 }
 
 /*
@@ -362,7 +362,28 @@ function timezonecalculator_calculateDate($time_string, $timezone_string) {
 	}
 
 	elseif (strlen($time_string)>2) {
-		$parsedDate=strtotime($time_string);
+
+		/*
+		calculate server offset as
+		strtotime uses
+		server-timezone-settings
+		*/
+
+		$serverOffset=0;
+
+		if (function_exists('date_default_timezone_get')) {
+			$serverTimeZone=@date_default_timezone_get();
+			$zeroOffset=array('UTC', 'UCT', 'GMT', 'GMT0', 'GMT+0', 'GMT-0', 'Greenwich', 'Universal', 'Zulu');
+
+			if ($serverTimeZone && !empty($serverTimeZone) && !in_array(str_ireplace('etc/', '', $serverTimeZone), $zeroOffset)) {
+				$offset=timezonecalculator_calculateUTC(TIMEZONECALCULATOR_CURRENTGMDATE, $serverTimeZone);
+				if ($offset!==false) {
+					$serverOffset=$offset;
+				}
+			}
+		}
+
+		$parsedDate=strtotime($time_string, TIMEZONECALCULATOR_CURRENTGMDATE)+$serverOffset;
 		if ($parsedDate!==false && $parsedDate!=-1) {
 			$myDate=$parsedDate;
 		}
