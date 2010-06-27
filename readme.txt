@@ -219,7 +219,7 @@ Array-Structure:
 
 1. This screenshot shows the Settings/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
 
-2. This picture presents the TimeZoneCalculator in the Tools Menu.
+2. This picture presents the Preview Section of the TimeZoneCalculator Tab in the Admin Menu.
 
 3. This screenshot shows an example of the clock of the Admin Menu. - The date/time and the display format can be customized.
 
