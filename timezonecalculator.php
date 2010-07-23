@@ -4,13 +4,13 @@
 Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
-Author: Bernhard Riedl
-Version: 2.00
+Author: Dr. Bernhard Riedl
+Version: 2.10
 Author URI: http://www.bernhard.riedl.name/
 */
 
 /*
-Copyright 2006-2010 Bernhard Riedl
+Copyright 2006-2010 Dr. Bernhard Riedl
 
 Inspirations & Proof-Reading 2007-2010
 by Veronika Grascher
@@ -126,6 +126,8 @@ class TimeZoneCalculator {
 
 		'include_wordpress_clock_admin_head' => false,
 
+		'view_other_users_timezones_capability' => 'edit_users',
+
 		'debug_mode' => false,
 
 		'section' => 'drag_and_drop'
@@ -215,6 +217,7 @@ class TimeZoneCalculator {
 			'fields' => array(
 				'prefer_user_timezones' => 'Prefer User TimeZones',
 				'include_wordpress_clock_admin_head' => 'Display WordPress Clock in Admin Header',
+				'view_other_users_timezones_capability' => 'Capability to view timezones-selection of other users',
 				'debug_mode' => 'Enable Debug-Mode'
 			)
 		),
@@ -271,7 +274,7 @@ class TimeZoneCalculator {
 
 		wp_register_script($this->get_prefix().'datepicker', $this->get_plugin_url().'js/datepicker/js/datepicker.js', array(), '5.4');
 
-		wp_register_script($this->get_prefix().'utils', $this->get_plugin_url().'js/utils.js', array('prototype'), '2.00');
+		wp_register_script($this->get_prefix().'utils', $this->get_plugin_url().'js/utils.js', array('prototype'), '2.10');
 
 		wp_register_script($this->get_prefix().'timezones', $this->get_plugin_url().'js/timezones.js', array('prototype'), '2.00');
 
@@ -279,7 +282,7 @@ class TimeZoneCalculator {
 
 		wp_register_script($this->get_prefix().'settings_page', $this->get_plugin_url().'js/settings_page.js', array('prototype', $this->get_prefix().'utils'), '2.00');
 
-		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('prototype', $this->get_prefix().'datepicker', $this->get_prefix().'utils', $this->get_prefix().'timezones', $this->get_prefix().'refresh'), '2.00');
+		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('prototype', $this->get_prefix().'datepicker', $this->get_prefix().'utils', $this->get_prefix().'timezones', $this->get_prefix().'refresh'), '2.10');
 	}
 
 	/*
@@ -382,6 +385,7 @@ class TimeZoneCalculator {
 		*/
 
 		add_action('show_user_profile', array(&$this, 'show_user_profile'));
+		add_action('edit_user_profile', array(&$this, 'show_user_profile'));
 
 		/*
 		admin_head
@@ -667,7 +671,8 @@ class TimeZoneCalculator {
 			'dashboard_widget',
 			'dashboard_right_now',
 			'calculator',
-			'world_clock_tools_page'
+			'world_clock_tools_page',
+			'view_other_users_timezones'
 		);
 
 		$capabilities=$this->get_all_capabilities();
@@ -909,6 +914,24 @@ class TimeZoneCalculator {
 
 	function is_integer($value) {
 		return preg_match('@^[-]?[0-9]+$@', $value);
+	}
+
+	/*
+	rounds to the nearest multiple
+	by Mark Blaszczyk
+
+	taken from http://www.markblah.com/2008/05/11/php-round-number-to-nearest-x/
+	*/
+
+	function round_to_nearest($num, $nearest) {
+		$ret = 0;
+		$mod = $num % $nearest;
+
+		if ($mod >= 0)
+			$ret = ( $mod > ( $nearest / 2)) ? $num + ( $nearest - $mod) : $num - $mod;
+		else
+			$ret = ( $mod > (-$nearest / 2)) ? $num - $mod : $num + ( -$nearest - $mod);
+		return $ret;
 	}
 
 	/*
@@ -1282,6 +1305,7 @@ class TimeZoneCalculator {
 
 			if ( !empty($city) ) {
 				if ( !empty($subcity) ) {
+					$city = $city . '/'. $subcity;
 					$t_city = $t_city . '/'. $t_subcity;
 				}
 				$timezones .= '<option value="'.$continent.'/'.$city.'">'.str_replace("'", '&rsquo;', $t_city).'</option>';
@@ -1309,7 +1333,7 @@ class TimeZoneCalculator {
 	and a timezone into a UTC unix timestamp
 	*/
 
-	function calculate_date($query_time, $query_timezone) {
+	function calculate_date($query_time, $query_timezone, $current_utc=TIMEZONECALCULATOR_CURRENTGMDATE) {
 		$ret_val=false;
 
 		/*
@@ -1325,7 +1349,7 @@ class TimeZoneCalculator {
 	
 		elseif (strlen($query_time)>2) {
 
-			$adopted_for_strtotime=TIMEZONECALCULATOR_CURRENTGMDATE;
+			$adopted_for_strtotime=$current_utc;
 
 			/*
 			adopt timestamp for strtotime
@@ -1334,7 +1358,7 @@ class TimeZoneCalculator {
 			*/
 
 			if (!empty($query_timezone)) {
-				$offset=$this->calculate_utc_offset(TIMEZONECALCULATOR_CURRENTGMDATE, $query_timezone);
+				$offset=$this->calculate_utc_offset($current_utc, $query_timezone);
 				$adopted_for_strtotime+=$offset;
 			}
 
@@ -1730,7 +1754,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.00\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.10\"/>\n");
 	}
 
 	/*
@@ -1793,10 +1817,10 @@ class TimeZoneCalculator {
 	embed world clock in user profile
 	*/
 
-	function show_user_profile() {
+	function show_user_profile($profileuser) {
 		if ($this->get_option('include_world_clock_user_profile')) {
 			echo('<h3>World Clock</h3>');
-			$this->display_world_clock('user_profile');
+			$this->display_world_clock('user_profile', $profileuser->ID);
 		}
 	}
 
@@ -2044,11 +2068,54 @@ class TimeZoneCalculator {
 		use user's timezones?
 		*/
 
-		if ($params['prefer_user_timezones']) {
-			$maybe_timezones=get_user_option($this->get_prefix().'timezones');
+		global $user_ID;
 
-			if (!empty($maybe_timezones) && is_array($maybe_timezones))
+		/*
+		load current user's details
+		*/
+
+		get_currentuserinfo();
+
+		/*
+		allow to query for a
+		user's timezones-selection
+		*/
+
+		if (is_user_logged_in() && $params['prefer_user_timezones']) {
+
+			/*
+			if user_id has not been set,
+			we use the user who is
+			currently logged in
+			*/
+
+			if (!isset($params['user_id']) || empty($params['user_id']))
+				$params['user_id']=$user_ID;
+
+			/*
+			if a user tries to
+			view the timezones of
+			another user, we conduct
+			a security check
+			*/
+
+			if ($params['user_id']!=$user_ID && !current_user_can($this->get_option('view_other_users_timezones_capability')))
+				throw new Exception('You are not authorized to view another user\'s timezones!');
+
+			/*
+			validate user_id
+			*/
+
+			if (!$this->is_integer($params['user_id']) || $params['user_id']<1 || !get_userdata($params['user_id']))
+				throw new Exception('user_id '.$params['user_id'].' does not exist');
+
+			$maybe_timezones=get_user_option($this->get_prefix().'timezones', $params['user_id']);
+
+			if (!empty($maybe_timezones) && is_array($maybe_timezones)) {
 				$params['timezones']=$maybe_timezones;
+
+				$this->log('use timezones-selection of user '.$params['user_id']);
+				}
 		}
 
 		/*
@@ -2188,6 +2255,7 @@ class TimeZoneCalculator {
 			$refresh_query_params=array(
 				'id',
 				'prefer_user_timezones',
+				'user_id',
 				'before_list',
 				'after_list',
 				'format_timezone',
@@ -2303,8 +2371,9 @@ class TimeZoneCalculator {
 	display world-clock
 	*/
 
-	private function display_world_clock($filter) {
+	private function display_world_clock($filter, $user_id=null) {
 		$unfiltered_params=array(
+			'user_id' => $user_id,
 			'before_list' => '<ul class="'.$this->get_prefix().'sortablelist">',
 			'after_list' => '</ul>',
 			'format_timezone' => '<li style="cursor:default" class="'.$this->get_prefix().'sortablelist"><abbr title="%name">%abbreviation</abbr>: <span title="%name">%datetime</span></li>'
@@ -2545,9 +2614,9 @@ class TimeZoneCalculator {
 		$default_value=null;
 
 		if ($type=='options')
-			$default_value=htmlentities($this->get_option($field), ENT_QUOTES, get_option('blog_charset'));
+			$default_value=htmlentities($this->get_option($field), ENT_QUOTES, get_option('blog_charset'), false);
 		else if ($type=='defaults')
-			$default_value=htmlentities($this->get_default($field), ENT_QUOTES, get_option('blog_charset'));
+			$default_value=htmlentities($this->get_default($field), ENT_QUOTES, get_option('blog_charset'), false);
 		else
 			throw new Exception('type '.$type.' does not exist for field '.$field.'!');
 
@@ -2736,7 +2805,7 @@ class TimeZoneCalculator {
 
 			/* <![CDATA[ */
 
-			Event.observe(window, 'load', function(e){ <?php echo($javascript_toggle.'$(\''.$this->get_prefix().$name.'\')'.$javascript_fields. ', '.($js_checked == 1 ? true : false).');'); ?> });
+			Event.observe(window, 'load', function(e){ <?php echo($javascript_toggle.'$(\''.$this->get_prefix().$name.'\')'.$javascript_fields. ', '.($js_checked == 1 ? '1' : '0').');'); ?> });
 
 			/* ]]> */
 
@@ -2748,7 +2817,7 @@ class TimeZoneCalculator {
 			build trigger for settings_field
 			*/
 
-		$javascript_onclick_related_fields='onclick="'.$javascript_toggle.'this'.$javascript_fields. ', '.($js_checked == 1 ? true : false).');"';
+			$javascript_onclick_related_fields='onclick="'.$javascript_toggle.'this'.$javascript_fields. ', '.($js_checked == 1 ? '1' : '0').');"';
 		}
 
 		$checked=$this->get_setting_default_value($name, $type); ?>
@@ -2799,7 +2868,10 @@ class TimeZoneCalculator {
 	generic continent + timezone select
 	*/
 
-	function setting_timezone($name, $selected_continent='', $selected_timezone='') { ?>
+	function setting_timezone($name, $selected_timezone='') {
+		$attrs = explode('/', $selected_timezone);
+		$selected_continent=$attrs[0]; ?>
+
 		<select class="continent" name="<?php echo($name.'continent'); ?>" id="<?php echo($name.'continent'); ?>" disabled="disabled"><option value="Currently loading...">Currently loading...</option></select>
 		<select class="timezone" name="<?php echo($name.'timezone'); ?>" id="<?php echo($name.'timezone'); ?>" disabled="disabled"><option value="Currently loading...">Currently loading...</option></select>
 
@@ -2861,16 +2933,13 @@ class TimeZoneCalculator {
 	generic date (with date-picker) select
 	*/
 
-	function setting_date($name, $selected_date=false, $formats=array('Y-m-d', 'm/d/y')) { ?>
-		<input type="text" name="<?php echo($name.'date'); ?>" id="<?php echo($name.'date'); ?>" size="20" maxlength="25" value="<?php if(!empty($selected_date)) echo($selected_date); ?>" />
-
-		<?php
-
+	function setting_date($name, $selected_date=false, $formats=array('Y-m-d', 'm/d/y')) {
 		$allowed_formats = array(
 				'Y-m-d',
+				'd-m-Y',
 				'Y/m/d',
 				'm/d/Y',
-				'd.m.Y',
+				'd.m.Y'
 		);
 
 		$default_formats=array(
@@ -2921,6 +2990,8 @@ class TimeZoneCalculator {
 
 		?>
 
+		<input type="text" name="<?php echo($name.'date'); ?>" id="<?php echo($name.'date'); ?>" title="<?php echo(date_i18n($checked_formats[0], current_time('timestamp'), true)); ?>, tomorrow 3pm, ..." onfocus="this.focus(); this.select();" size="20" maxlength="25" value="<?php if(!empty($selected_date)) echo($selected_date); ?>" />
+
 		<script type="text/javascript">
 
 		/* <![CDATA[ */
@@ -2955,7 +3026,10 @@ class TimeZoneCalculator {
 
 		datePickerController.createDatePicker(opts);
 
-		<?php if ($selected_date===false) echo($this->get_prefix().'calculator_set_default_date();'); ?>
+		<?php
+		if ($selected_date===false)
+			echo($this->get_prefix().'calculator_set_default_date();');
+		?>
 
 		/* ]]> */
 
@@ -2967,6 +3041,25 @@ class TimeZoneCalculator {
 	*/
 
 	function setting_time($name, $selected_hour='', $selected_minute='', $format='H:i') {
+
+		/*
+		round selected_minute to the nearest
+		multiple of 5
+		*/
+
+		if (!empty($selected_minute) && $this->is_integer($selected_minute) && $selected_minute>-1)
+			$selected_minute=$this->round_to_nearest($selected_minute, 5);
+
+		/*
+		to avoid to much binding
+		we cheat a little bit here
+		because 60 minutes would actually
+		mean that we would have to also
+		change the hour and maybe the date
+		*/
+
+		if ($selected_minute==60)
+			$selected_minute=55;
 
 		$format_12_hours=false;
 
@@ -3049,11 +3142,14 @@ class TimeZoneCalculator {
 
 	private function neotrinity_support() { ?>
 		<h3>Support</h3>
-			If you like to support the development of <?php echo($this->get_nicename()); ?>, you can invite my on a virtual pizza for my work. <?php echo(convert_smilies(':)')); ?><br /><br />
+		If you like to support the development of <?php echo($this->get_nicename()); ?>, you can invite me for a <a target="_blank" href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&amp;business=bernhard%40riedl%2ename&amp;item_name=Donation%20for%20TimeZoneCalculator&amp;no_shipping=1&amp;no_note=1&amp;tax=0&amp;currency_code=EUR&amp;bn=PP%2dDonationsBF&amp;charset=UTF%2d8">virtual pizza</a> for my work. <?php echo(convert_smilies(':)')); ?><br /><br />
 
-		<form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="neotrinity.at" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="USD" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br />
+		<form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="Donation for TimeZoneCalculator" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="EUR" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br />
 
-		Maybe you also want to <?php if (current_user_can('manage_links')) { ?><a href="link-add.php"><?php } ?>add a link<?php if (current_user_can('manage_links')) { ?></a><?php } ?> to <a href="http://www.neotrinity.at/projects/">http://www.neotrinity.at/projects/</a>.<br /><br />
+		Maybe you also want to <?php if (current_user_can('manage_links')) { ?><a href="link-add.php"><?php } ?>add a link<?php if (current_user_can('manage_links')) { ?></a><?php } ?> to <a href="http://www.neotrinity.at/projects/">http://www.neotrinity.at/projects/</a>.<?php if(strpos($_SERVER['HTTP_HOST'], 'journeycalculator.com')===false) { ?><br /><br />
+
+		Fancy on timezones-calculation? - Try the free <a target="_blank" href="http://www.journeycalculator.com/">JourneyCalculator</a>...<?php } ?>
+<br /><br />
 	<?php }
 
 	/*
@@ -3172,7 +3268,7 @@ class TimeZoneCalculator {
 
 					$otherOptions='<input type="hidden" value="';
 					if (sizeof($timezone_attributes)==7) {
-						$otherOptions.=htmlentities(trim(implode(';',array_slice($timezone_attributes, 1))), ENT_QUOTES, get_option('blog_charset'));
+						$otherOptions.=htmlentities(trim(implode(';',array_slice($timezone_attributes, 1))), ENT_QUOTES, get_option('blog_charset'), false);
 					}
 					else {
 						$otherOptions.=';;;;1;1';
@@ -3380,7 +3476,7 @@ class TimeZoneCalculator {
 	*/
 
 	function setting_timezones($params=array()) { ?>
-		<textarea <?php echo($this->get_setting_name_and_id('timezones')); ?> cols="90" rows="5"><?php echo(htmlentities(implode("\n", $this->get_default('timezones')), ENT_QUOTES, get_option('blog_charset'))); ?></textarea>
+		<textarea <?php echo($this->get_setting_name_and_id('timezones')); ?> cols="90" rows="5"><?php echo(htmlentities(implode("\n", $this->get_default('timezones')), ENT_QUOTES, get_option('blog_charset'), false)); ?></textarea>
 	<?php }
 
 	/*
@@ -3538,6 +3634,8 @@ class TimeZoneCalculator {
 
 			<li><a href="options-general.php">Your local WordPress Date/Time</a> can be displayed in the header of the Admin Menu if you enable <em>Display WordPress Clock in Admin Header</em>.</li>
 
+			<li>As it may be a privacy invasion to provide someone with access to a certain user's timezones-selection, you can define the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones-selection of other users</em>.</li>
+
 			<li>The <em>Debug Mode</em> can be used to have a look on the actions undertaken by <?php echo($this->get_nicename()); ?> and to investigate unexpected behaviour.</li>
 		</ul>
 
@@ -3550,6 +3648,10 @@ class TimeZoneCalculator {
 
 	function setting_include_wordpress_clock_admin_head($params=array()) {
 		$this->setting_checkfield('include_wordpress_clock_admin_head', 'options');
+	}
+
+	function setting_view_other_users_timezones_capability($params=array()) {
+		$this->setting_capability('view_other_users_timezones', 'options');
 	}
 
 	function setting_debug_mode($params=array()) {
@@ -3707,7 +3809,7 @@ class TimeZoneCalculator {
 
 		<input type="hidden" <?php echo($this->get_setting_name_and_id('section')); ?> />
 
-		<textarea <?php echo($this->get_setting_name_and_id('timezones')); ?> cols="90" rows="5" style="display:none"><?php echo(htmlentities(implode("\n", $timezones_array), ENT_QUOTES, get_option('blog_charset'))); ?></textarea>
+		<textarea <?php echo($this->get_setting_name_and_id('timezones')); ?> cols="90" rows="5" style="display:none"><?php echo(htmlentities(implode("\n", $timezones_array), ENT_QUOTES, get_option('blog_charset'), false)); ?></textarea>
 
 		<p class="submit">
 		<?php
@@ -3837,7 +3939,6 @@ class TimeZoneCalculator_DateTimeZone extends DateTimeZone {
 		parent::__construct($this->get_timezone_id());
 
 		$this->is_dst();
-
 	}
 
 	/*
@@ -4137,8 +4238,8 @@ class TimeZoneCalculator_DateTimeZone extends DateTimeZone {
 	*/
 
 	function format_timezone($params) {
-		$name=htmlentities($this->get_name(), ENT_QUOTES, get_option('blog_charset'));
-		$abbreviation=htmlentities($this->get_abbreviation(), ENT_QUOTES, get_option('blog_charset'));
+		$name=htmlentities($this->get_name(), ENT_QUOTES, get_option('blog_charset'), false);
+		$abbreviation=htmlentities($this->get_abbreviation(), ENT_QUOTES, get_option('blog_charset'), false);
 		$datetime=date_i18n($params['format_datetime'], ($params['query_time']+ $this->get_offset()), true);
 
 		/*

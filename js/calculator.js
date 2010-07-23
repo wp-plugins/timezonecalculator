@@ -3,12 +3,7 @@ set today's date as default
 */
 
 function timezonecalculator_calculator_set_default_date() {
-	var currentTime = new Date();
-	var year = currentTime.getUTCFullYear();
-	var month = (currentTime.getUTCMonth()+1).toPaddedString(2);
-	var day = (currentTime.getUTCDate()).toPaddedString(2);
-
-	datePickerController.setSelectedDate('timezonecalculator_date', year+''+month+''+day);
+	datePickerController.setSelectedDate('timezonecalculator_date', timezonecalculator_get_today_date());
 }
 
 /*

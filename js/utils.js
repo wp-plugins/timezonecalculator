@@ -89,3 +89,16 @@ function timezonecalculator_select_value_in_select(select, value) {
 		}
 	}
 }
+
+/*
+get today's date
+*/
+
+function timezonecalculator_get_today_date() {
+	var currentTime = new Date();
+	var year = currentTime.getUTCFullYear();
+	var month = (currentTime.getUTCMonth()+1).toPaddedString(2);
+	var day = (currentTime.getUTCDate()).toPaddedString(2);
+
+	return year+''+month+''+day;
+}

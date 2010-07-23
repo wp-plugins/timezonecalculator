@@ -1,9 +1,9 @@
 === TimeZoneCalculator ===
 Contributors: neoxx
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=neo%40neotrinity%2eat&item_name=neotrinity%2eat&no_shipping=1&no_note=1&tax=0&currency_code=USD&bn=PP%2dDonationsBF&charset=UTF%2d8
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=bernhard%40riedl%2ename&item_name=Donation%20for%20TimeZoneCalculator&no_shipping=1&no_note=1&tax=0&currency_code=EUR&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, prototype
 Requires at least: 2.8
-Tested up to: 3.0
+Tested up to: 3.1
 Stable tag: trunk
 
 Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
@@ -24,6 +24,8 @@ Calculates, displays and automatically updates times and dates in different time
 * drag and drop admin menu page
 * fully WP 3.0 multi-site network compatible
 * clean uninstall
+
+**Fancy on timezones-calculation? - Try the free [JourneyCalculator](http://www.journeycalculator.com/) with its integrated TimeZoneCalculator...**
 
 Requirements for current version:
 
@@ -105,6 +107,8 @@ $params:
 - `timezones`: alternative timezones-array - each array entry has to be a string as described in the Expert Section of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
 
 - `prefer_user_timezones`: prefer user set timezones - if they exist - to global or function call timezones; default is `false`
+
+- `user_id`: determines which user's timezones should be used; not set as default -> use the timezones of the user who is currently logged in
 
 - `use_container`: if set to `true` (default value), the current UTC is used as `query_time` and the same selected stats and format is used as set in the admin menu, TimeZoneCalculator wraps the output in a html div with the class `timezonecalculator-refreshable-output` - the class `timezonecalculator-output` will be used for all other output; if you set `use_container` to `false`, no container div will be generated
 
@@ -233,18 +237,25 @@ This is not only a feature but also a security update. - Thus, I'd strongly reco
 
 == Changelog ==
 
+= 2.10 =
+
+* added `$params['user_id']` as argument of `$timezonecalculator->output()` to make it possible for users to access the timezones of other users
+* the access to the user's timezones-selection can be restricted
+* reworked and extended a few internal functions
+* corrected a few typos and fixed potential bugs
+
 = 2.00 =
 
 * start Changelog
 * completely reworked API methods and internal structure
 * Security improvements (wp_nonce, capabilities)
-* reworked Admin-Menu
+* reworked Admin Menu
 * extracted JavaScript-code
 * offer new function `$timezonecalculator->output()`
 * all timezones, that are not set to specific datetime are now Ajax refreshable
 * the timezone-name can now also be displayed if you opt-out from displaying the timezone-abbreviation
 * localized datetimes and timezones
-* added Admin-Menu header clock
+* added Admin Menu header clock
 * possible to add in "Right Now" box on dashboard
 * the calculator and a world-clock can be displayed in the tools-Menu.
 * users are now able to choose their own timezones
