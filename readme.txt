@@ -30,6 +30,7 @@ Calculates, displays and automatically updates times and dates in different time
 Requirements for current version:
 
 * PHP 5 or higher (find the version for PHP 4 [here](http://downloads.wordpress.org/plugin/timezonecalculator.php4.zip))
+* You can check your PHP version with the [Health Check](http://wordpress.org/extend/plugins/health-check/) plugin.
 
 Please find the version for WordPress
 
