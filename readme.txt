@@ -1,7 +1,7 @@
 === TimeZoneCalculator ===
 Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=bernhard%40riedl%2ename&item_name=Donation%20for%20TimeZoneCalculator&no_shipping=1&no_note=1&tax=0&currency_code=EUR&bn=PP%2dDonationsBF&charset=UTF%2d8
-Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, prototype
+Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, prototype, jquery
 Requires at least: 2.8
 Tested up to: 3.1
 Stable tag: trunk
@@ -20,7 +20,7 @@ Calculates, displays and automatically updates times and dates in different time
 * display clock in Admin Menu header
 * possible to integrate in "Right Now" box on the dashboard or on the user's profile page
 * Calculator section in tools-Menu with individual timezone-selection for every user
-* optional Ajax refresh
+* optional Ajax refresh (Prototype or jQuery)
 * drag and drop admin menu page
 * fully WP 3.0 multi-site network compatible
 * clean uninstall
@@ -62,9 +62,13 @@ If any timezone information like offset, abbreviations, etc. appears to be wrong
 
 Though timezone abbreviations can be automatically filled out, the corresponding full names (for example Central European Time for CET) are currently not supported within the PHP library. Nevertheless, you can look up this information in the TimeZoneCalculator Tab in your Admin Menu.
 
+= Which Javascript library should I choose for the Ajax refresh in my theme? =
+
+That's [a well-covered topic in the web](https://encrypted.google.com/search?q=prototype+vs.+jquery). TimeZoneCalculator provides you with the flexibility to use either [Prototype](http://www.prototypejs.org/) or [jQuery](http://jquery.com/). Thus, your decision merely depends on what your other installed plugins use.
+
 = Why is 'Drag and Drop' not working? Why can't I see the 'Drag and Drop' section? =
 
-This section is based on Javascript. Thus, you have to enable Javascript in your browser (this is a default setting in a [modern browser](http://browsehappy.com/) like Firefox). TimeZoneCalculator is still fully functional without these constraints, but you need to customize your stats manually as in older versions of TimeZoneCalculator.
+This section is based on Javascript. Thus, you have to enable Javascript in your browser (this is a default setting in a [modern browser](http://browsehappy.com/) like [Firefox](http://www.mozilla.com/?from=sfx&uid=313633&t=306)). TimeZoneCalculator is still fully functional without these constraints, but you need to customize your stats manually as in older versions of TimeZoneCalculator.
 
 = How can I adopt the color scheme in the TimeZoneCalculator Settings Tab? =
 
@@ -237,6 +241,10 @@ Array-Structure:
 This is not only a feature but also a security update. - Thus, I'd strongly recommend all users of TimeZoneCalculator which have at least an environment of WordPress 2.8 or higher and PHP 5 to install this version!
 
 == Changelog ==
+
+= 2.20 =
+
+* added jQuery as alternative to Prototype for the Ajax refresh in the front-end
 
 = 2.10 =
 

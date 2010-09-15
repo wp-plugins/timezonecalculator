@@ -23,6 +23,9 @@ error-messages:
 */
 
 function timezonecalculator_refresh(params, query_params) {
+	if(typeof jQuery != 'undefined')
+		jQuery.noConflict();
+
 	if (!Object.isUndefined(params.get('callback_init')) && params.get('callback_init')!==null) {
 		var callback_init_function = params.get('callback_init');
 		window[callback_init_function()];

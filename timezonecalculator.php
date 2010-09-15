@@ -5,12 +5,12 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.10
+Version: 2.20
 Author URI: http://www.bernhard.riedl.name/
 */
 
 /*
-Copyright 2006-2010 Dr. Bernhard Riedl
+Copyright 2005-2010 Dr. Bernhard Riedl
 
 Inspirations & Proof-Reading 2007-2010
 by Veronika Grascher
@@ -112,6 +112,7 @@ class TimeZoneCalculator {
 		'ajax_refresh_time' => 30,
 		'renew_nonce' => false,
 		'anonymous_ajax_refresh' => true,
+		'ajax_refresh_lib' => 'prototype',
 
 		'dashboard_widget' => false,
 		'dashboard_widget_capability' => 'read',
@@ -148,6 +149,15 @@ class TimeZoneCalculator {
 	private $block_count=0;
 
 	/*
+	ajax refresh libraries for front end
+	*/
+
+	private $ajax_refresh_libs=array(
+		'prototype' => 'Prototype',
+		'jquery' => 'jQuery'
+	);
+
+	/*
 	options-page sections/option-groups
 	*/
 
@@ -182,7 +192,8 @@ class TimeZoneCalculator {
 				'use_ajax_refresh' => 'Use Ajax Refresh',
 				'ajax_refresh_time' => 'Ajax Refresh Time',
 				'renew_nonce' => 'Renew nonce to assure continous updates',
-				'anonymous_ajax_refresh' => 'Allow anonymous Ajax Refresh Requests'
+				'anonymous_ajax_refresh' => 'Allow anonymous Ajax Refresh Requests',
+				'ajax_refresh_lib' => 'Ajax Refresh Library in Front-End'
 				)
 		),
 		'dashboard' => array(
@@ -270,9 +281,28 @@ class TimeZoneCalculator {
 	*/
 
 	private function register_scripts() {
-		wp_register_script($this->get_prefix().'refresh', $this->get_plugin_url().'js/refresh.js', array('prototype'), '2.00');
+
+		/*
+		DatePicker v5.4 by frequency-decoder.com
+		http://www.frequency-decoder.com/2009/09/09/unobtrusive-date-picker-widget-v5
+		*/
 
 		wp_register_script($this->get_prefix().'datepicker', $this->get_plugin_url().'js/datepicker/js/datepicker.js', array(), '5.4');
+
+		/*
+		jshashtable v2.1 by Tim Down
+		http://www.timdown.co.uk/jshashtable/
+		*/
+
+		wp_register_script($this->get_prefix().'jshashtable', $this->get_plugin_url().'js/jshashtable/jshashtable.js', array(), '2.1');
+
+		/*
+		TimeZoneCalculator JS
+		*/
+
+		wp_register_script($this->get_prefix().'refresh_prototype', $this->get_plugin_url().'js/refresh_prototype.js', array('prototype'), '2.20');
+
+		wp_register_script($this->get_prefix().'refresh_jquery', $this->get_plugin_url().'js/refresh_jquery.js', array('jquery', $this->get_prefix().'jshashtable'), '2.20');
 
 		wp_register_script($this->get_prefix().'utils', $this->get_plugin_url().'js/utils.js', array('prototype'), '2.10');
 
@@ -282,7 +312,7 @@ class TimeZoneCalculator {
 
 		wp_register_script($this->get_prefix().'settings_page', $this->get_plugin_url().'js/settings_page.js', array('prototype', $this->get_prefix().'utils'), '2.00');
 
-		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('prototype', $this->get_prefix().'datepicker', $this->get_prefix().'utils', $this->get_prefix().'timezones', $this->get_prefix().'refresh'), '2.10');
+		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('prototype', $this->get_prefix().'datepicker', $this->get_prefix().'utils', $this->get_prefix().'timezones', $this->get_prefix().'refresh_prototype'), '2.10');
 	}
 
 	/*
@@ -689,6 +719,14 @@ class TimeZoneCalculator {
 		if (array_key_exists('ajax_refresh_time', $input))
 			if (!$this->is_integer($input['ajax_refresh_time']) || $input['ajax_refresh_time']<1 || $input['ajax_refresh_time']>3600)
 				$input['ajax_refresh_time']=$this->fallback_options['ajax_refresh_time'];
+
+		/*
+		check ajax_refresh_lib
+		*/
+
+		if (array_key_exists('ajax_refresh_lib', $input))
+			if (!array_key_exists($input['ajax_refresh_lib'], $this->ajax_refresh_libs))
+				$input['ajax_refresh_lib']=$this->fallback_options['ajax_refresh_lib'];
 
 		/*
 		split timezones-string by newline
@@ -1754,7 +1792,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.10\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.20\"/>\n");
 	}
 
 	/*
@@ -1857,12 +1895,24 @@ class TimeZoneCalculator {
 	*/
 
 	function refresh_print_scripts() {
-		wp_enqueue_script($this->get_prefix().'refresh');
+		$ajax_refresh_lib=$this->get_option('ajax_refresh_lib');
+
+		/*
+		force Prototype for Ajax-Refresh
+		in Admin Menu
+		*/
+
+		if (defined('WP_ADMIN') && WP_ADMIN)
+			$ajax_refresh_lib='prototype';
+
+		$ajax_refresh_lib='_'.$ajax_refresh_lib;
+
+		wp_enqueue_script($this->get_prefix().'refresh'.$ajax_refresh_lib);
 
 		$security_string=$this->get_prefix().'output';
 		$_ajax_nonce=wp_create_nonce($security_string);
 
-		wp_localize_script($this->get_prefix().'refresh', $this->get_prefix().'refresh_settings', array('ajax_url' => admin_url('admin-ajax.php'),
+		wp_localize_script($this->get_prefix().'refresh'.$ajax_refresh_lib, $this->get_prefix().'refresh_settings', array('ajax_url' => admin_url('admin-ajax.php'),
 '_ajax_nonce' => $_ajax_nonce, 'refresh_time' => $this->get_option('ajax_refresh_time')));
 	}
 
@@ -2996,11 +3046,6 @@ class TimeZoneCalculator {
 
 		/* <![CDATA[ */
 
-		/*
-		DatePicker v5.4 by frequency-decoder.com
-		http://www.frequency-decoder.com/2009/09/09/unobtrusive-date-picker-widget-v5
-		*/
-
 		var opts = {
 			formElements:{"<?php echo($name.'date'); ?>":"<?php echo($converted_formats[0]); ?>"},
 			highlightDays:[0,0,0,0,0,1,1],
@@ -3545,11 +3590,13 @@ class TimeZoneCalculator {
 			<li>Due to security reasons, the time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates will be limited by default. WordPress normally defines this time to be 24 hours. If you activate <em>Renew nonce to assure continous updates</em> you override this security feature but provide unlimited time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates of your timezones.</li>
 
 			<li>You can also choose to allow only logged in users to execute <abbr title="asynchronous JavaScript and XML">Ajax</abbr> refresh operations if you deactivate the option <em>Allow anonymous Ajax Refresh Requests</em>.</li>
+
+			<li>In the last option, <em>Ajax Refresh Library in Front-End</em>, you can choose whether to use <a target="_blank" href="http://jquery.com/">jQuery</a> or <a target="_blank" href="http://www.prototypejs.org/">Prototype</a> for the Ajax Refresh in your theme.</li>
 		</ul>
 	<?php }
 
 	function setting_use_ajax_refresh($params=array()) {
-		$this->setting_checkfield('use_ajax_refresh', 'options', array('ajax_refresh_time', 'renew_nonce', 'anonymous_ajax_refresh'));
+		$this->setting_checkfield('use_ajax_refresh', 'options', array('ajax_refresh_time', 'renew_nonce', 'anonymous_ajax_refresh', 'ajax_refresh_lib'));
 	}
 
 	function setting_ajax_refresh_time($params=array()) {
@@ -3562,6 +3609,23 @@ class TimeZoneCalculator {
 
 	function setting_anonymous_ajax_refresh($params=array()) {
 		$this->setting_checkfield('anonymous_ajax_refresh', 'options');
+	}
+
+	function setting_ajax_refresh_lib($params=array()) {
+		?><select <?php echo($this->get_setting_name_and_id('ajax_refresh_lib')); ?>>
+
+			<?php
+			$ret_val='';
+
+			foreach ($this->ajax_refresh_libs as $key => $ajax_refresh_lib) {
+				$_selected = $key == $this->get_setting_default_value('ajax_refresh_lib', 'options') ? " selected='selected'" : '';
+				$ret_val.="\t<option value='".$key."'".$_selected.">" . $ajax_refresh_lib . "</option>\n";
+			}
+
+			echo $ret_val;
+			?>
+
+		</select><?php
 	}
 
 	/*
