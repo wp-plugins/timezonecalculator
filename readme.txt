@@ -37,6 +37,10 @@ Please find the version for WordPress
 * 2.8 and higher [here](http://downloads.wordpress.org/plugin/timezonecalculator.zip)
 * 1.5 to 2.7 [here](http://downloads.wordpress.org/plugin/timezonecalculator.wordpress1.5-2.7.zip)
 
+**Plugin's website:** [http://www.neotrinity.at/projects/](http://www.neotrinity.at/projects/)
+
+**Author's website:** [http://www.bernhard.riedl.name/](http://www.bernhard.riedl.name/)
+
 == Installation ==
 
 1. Copy the `timezonecalculator` directory into your WordPress Plugins directory (usually wp-content/plugins). Hint: You can also conduct this step within your Admin Menu.
