@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.20
+Version: 2.30
 Author URI: http://www.bernhard.riedl.name/
 */
 
@@ -112,7 +112,7 @@ class TimeZoneCalculator {
 		'ajax_refresh_time' => 30,
 		'renew_nonce' => false,
 		'anonymous_ajax_refresh' => true,
-		'ajax_refresh_lib' => 'prototype',
+		'ajax_refresh_lib' => 'jquery',
 
 		'dashboard_widget' => false,
 		'dashboard_widget_capability' => 'read',
@@ -153,8 +153,8 @@ class TimeZoneCalculator {
 	*/
 
 	private $ajax_refresh_libs=array(
-		'prototype' => 'Prototype',
-		'jquery' => 'jQuery'
+		'jquery' => 'jQuery',
+		'prototype' => 'Prototype'
 	);
 
 	/*
@@ -287,22 +287,22 @@ class TimeZoneCalculator {
 		http://www.frequency-decoder.com/2009/09/09/unobtrusive-date-picker-widget-v5
 		*/
 
-		wp_register_script($this->get_prefix().'datepicker', $this->get_plugin_url().'js/datepicker/js/datepicker.js', array(), '5.4');
+		wp_register_script('unobtrusive_date_picker_widget', $this->get_plugin_url().'js/datepicker/js/datepicker.js', array(), '5.4');
 
 		/*
 		jshashtable v2.1 by Tim Down
 		http://www.timdown.co.uk/jshashtable/
 		*/
 
-		wp_register_script($this->get_prefix().'jshashtable', $this->get_plugin_url().'js/jshashtable/jshashtable.js', array(), '2.1');
+		wp_register_script('jshashtable', $this->get_plugin_url().'js/jshashtable/jshashtable.js', array(), '2.1');
 
 		/*
 		TimeZoneCalculator JS
 		*/
 
-		wp_register_script($this->get_prefix().'refresh_prototype', $this->get_plugin_url().'js/refresh_prototype.js', array('prototype'), '2.20');
+		wp_register_script($this->get_prefix().'refresh_prototype', $this->get_plugin_url().'js/refresh_prototype.js', array('prototype'), '2.30');
 
-		wp_register_script($this->get_prefix().'refresh_jquery', $this->get_plugin_url().'js/refresh_jquery.js', array('jquery', $this->get_prefix().'jshashtable'), '2.20');
+		wp_register_script($this->get_prefix().'refresh_jquery', $this->get_plugin_url().'js/refresh_jquery.js', array('jquery', 'jshashtable'), '2.30');
 
 		wp_register_script($this->get_prefix().'utils', $this->get_plugin_url().'js/utils.js', array('prototype'), '2.10');
 
@@ -312,7 +312,7 @@ class TimeZoneCalculator {
 
 		wp_register_script($this->get_prefix().'settings_page', $this->get_plugin_url().'js/settings_page.js', array('prototype', $this->get_prefix().'utils'), '2.00');
 
-		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('prototype', $this->get_prefix().'datepicker', $this->get_prefix().'utils', $this->get_prefix().'timezones', $this->get_prefix().'refresh_prototype'), '2.10');
+		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('prototype', 'unobtrusive_date_picker_widget', $this->get_prefix().'utils', $this->get_prefix().'timezones', $this->get_prefix().'refresh_prototype'), '2.10');
 	}
 
 	/*
@@ -320,7 +320,7 @@ class TimeZoneCalculator {
 	*/
 
 	private function register_styles() {
-		wp_register_style($this->get_prefix().'datepicker', $this->get_plugin_url().'js/datepicker/css/datepicker.css', array(), '5.4');
+		wp_register_style('unobtrusive_date_picker_widget', $this->get_plugin_url().'js/datepicker/css/datepicker.css', array(), '5.4');
 	}
 
 	/*
@@ -396,8 +396,6 @@ class TimeZoneCalculator {
 
 		add_action('activity_box_end', array(&$this, 'add_right_now_box'));
 
-		add_action('admin_print_styles-index.php', array(&$this, 'add_dashboard_widget_css'));
-
 		/*
 		i18n for timezones
 		*/
@@ -418,10 +416,18 @@ class TimeZoneCalculator {
 		add_action('edit_user_profile', array(&$this, 'show_user_profile'));
 
 		/*
-		admin_head
+		add admin-clock
+
+		as we need to check for the
+		WordPress Admin Bar and this
+		function subsequently checks
+		if a user is
+		logged-in we can do this only
+		after plugins_loaded has fired
 		*/
 
-		add_action('admin_footer', array(&$this, 'admin_head_clock'));
+		if ($this->get_option('include_wordpress_clock_admin_head'))
+			add_action('plugins_loaded', array(&$this, 'admin_head_or_bar_clock'));
 
 		/*
 		whitelist options
@@ -1076,7 +1082,7 @@ class TimeZoneCalculator {
 		$method=str_replace($this->get_prefix(), '', $action);
 
 		/*
-		prepare json string
+		prepare json object
 		*/
 
 		$json_params=array();
@@ -1123,18 +1129,34 @@ class TimeZoneCalculator {
 			return -1;
 		}
 
+		$ret_val='';
+
 		/*
-		prepare json string
+		use built-in function if available
 		*/
 
-		$ret_val='{';
+		if (function_exists('json_encode'))
+			$ret_val=json_encode($params);
 
-		foreach ($params as $key => $param)
-			$ret_val.='"'.$key.'":"'.addslashes($param).'",';
+		/*
+		or do our own json-encoding
+		*/
 
-		$ret_val=substr($ret_val, 0, -1);
+		else {
 
-		$ret_val.='}';
+			/*
+			prepare json string
+			*/
+
+			$ret_val='{';
+
+			foreach ($params as $key => $param)
+				$ret_val.='"'.$key.'":"'.str_replace(array('\\', '"'), array('\\\\', '\"'), $param).'",';
+
+			$ret_val=substr($ret_val, 0, -1);
+
+			$ret_val.='}';
+		}
 
 		header('Content-type: application/json');
 		echo($ret_val);
@@ -1792,7 +1814,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.20\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.30\"/>\n");
 	}
 
 	/*
@@ -1817,7 +1839,7 @@ class TimeZoneCalculator {
 		if (!current_user_can($this->get_option('dashboard_widget_capability')))
 			return;
 
-		$this->current_timezones_block('dashboard_widget');
+		$this->current_timezones_block('dashboard_widget', 'font-size:11px;line-height:140%');
 	}
 
 	/*
@@ -1829,26 +1851,8 @@ class TimeZoneCalculator {
 		if ($this->get_option('dashboard_right_now') && current_user_can($this->get_option('dashboard_right_now_capability'))) {
 			echo('<p></p>');
 
-			$this->current_timezones_block('dashboard_right_now');
+			$this->current_timezones_block('dashboard_right_now', 'font-size:11px;line-height:140%');
 		}
-	}
-
-	/*
-	adds some CSS to format TimeZoneCalculator on the dashboard
-	*/
-
-	function add_dashboard_widget_css() {
-		if (($this->get_option('dashboard_widget') && current_user_can($this->get_option('dashboard_widget_capability'))) || ($this->get_option('dashboard_right_now') && current_user_can($this->get_option('dashboard_right_now_capability')))) { ?>
-
-		<style type="text/css">
-			.<?php echo($this->get_prefix(false)); ?>-refreshable-output, .<?php echo($this->get_prefix(false)); ?>-output {
-				font-size:11px;
-				line-height:140%;
-			}
-		</style>
-
-		<?php }
-
 	}
 
 	/*
@@ -1863,14 +1867,117 @@ class TimeZoneCalculator {
 	}
 
 	/*
-	embed local wordpress clock with
-	absolute position in admin header
+	embed local WordPress clock
+	in Admin Menu header or
+	WordPress Admin Bar
 	*/
 
-	function admin_head_clock() {
-		if ($this->get_option('include_wordpress_clock_admin_head')) {
-			$this->inline_wordpress_clock('admin_head_clock');
+	function admin_head_or_bar_clock() {
+
+		/*
+		check if Admin Bar
+		is available (WordPress >= 3.1)
+		and has been enabled
+		*/
+
+		if ($this->has_wp_admin_bar()) {
+			add_action('wp_before_admin_bar_render', array(&$this, 'admin_bar_wordpress_clock'), apply_filters($this->get_prefix().'admin_bar_clock_position', 1000));
+
+			$this->options_page_sections['administrative_options']['fields']['include_wordpress_clock_admin_head']=str_replace('Header', 'Bar', $this->options_page_sections['administrative_options']['fields']['include_wordpress_clock_admin_head']);
 		}
+
+		/*
+		default Admin Menu clock
+		*/
+
+		else
+			add_action('admin_footer', array(&$this, 'admin_head_wordpress_clock'));
+	}
+
+	/*
+	output clock in admin header
+
+	CSS inspired by "Hello Dolly" plugin
+	*/
+
+	function admin_head_wordpress_clock() {
+
+		/*
+		This makes sure that the
+		positioning is also good for
+		right-to-left languages
+		*/
+
+		$x='right';
+
+		if (function_exists('is_rtl'))
+			$x = (is_rtl()) ? 'left' : 'right';
+
+		$admin_css_colors=$this->get_admin_colors();
+
+		$format_container="position:absolute;padding:3px 5px;top:1.15em;$x:400px;font-size:11px;background-color:$admin_css_colors[1];color:$admin_css_colors[3];-moz-border-radius:8px;line-height:15px";
+
+		$format_timezone='<span title="%name">%datetime</span> <abbr title="%name">%abbreviation</abbr>';
+
+		/*
+		generate and output WordPress-clock
+		*/
+
+		$this->wordpress_clock('admin_head_clock', $format_container, $format_timezone, true);
+	}
+
+	/*
+	attach clock to admin bar
+	*/
+
+	function admin_bar_wordpress_clock() {
+		$format_container='display:inline';
+
+		/*
+		decide where the link of the clock
+		should point to
+		*/
+
+		$clock_href='';
+
+		if (current_user_can($this->get_option('calculator_capability')))
+			$clock_href=add_query_arg(array('page' => $this->get_calculator_tools_page()), admin_url('tools.php'));
+		else
+			$clock_href=admin_url('profile.php');
+
+		/*
+		don't display the timezone-name as title
+		because the wrapped span-elements
+		have problems on Ajax-updates
+		in some browsers -> keep it simple
+		*/
+
+		$format_timezone='%datetime %abbreviation';
+
+		/*
+		generate WordPress-clock
+		*/
+
+		$wordpress_clock=$this->wordpress_clock('admin_bar_clock', $format_container, $format_timezone, false);
+
+		/*
+		to be xhtml-valid we replace the div-elements
+		with span-elements as we cannot have a div
+		inside of a link, and links are necessary
+		in the admin-bar API
+
+		http://core.trac.wordpress.org/ticket/14772
+		http://core.trac.wordpress.org/ticket/15519
+		*/
+
+		$wordpress_clock_span=str_replace(array('<div', '</div'), array('<span', '</span'), $wordpress_clock);
+
+		/*
+		add WordPress-clock to admin-bar
+		*/
+
+		global $wp_admin_bar;
+		$wp_admin_bar->add_menu(array( 'id' => $this->get_prefix(false), 'title' => $wordpress_clock_span, 'href' => $clock_href));
 	}
 
 	/*
@@ -1898,12 +2005,25 @@ class TimeZoneCalculator {
 		$ajax_refresh_lib=$this->get_option('ajax_refresh_lib');
 
 		/*
-		force Prototype for Ajax-Refresh
-		in Admin Menu
+		for optimization of
+		page-load times,
+		the default Ajax-Library
+		in the Admin Menu is jQuery,
+		but we force Prototype
+		in Settings and Tools-Pages of
+		TimeZoneCalculator
+		because we need Prototype for
+		scriptaculous drag and drop
 		*/
 
-		if (defined('WP_ADMIN') && WP_ADMIN)
-			$ajax_refresh_lib='prototype';
+		if (defined('WP_ADMIN') && WP_ADMIN) {
+			$ajax_refresh_lib='jquery';
+
+			global $current_screen;
+
+			if ($current_screen->id=='settings_page_'.$this->get_prefix(false) || $current_screen->id=='tools_page_'.$this->get_prefix().'calculator')
+				$ajax_refresh_lib='prototype';
+		}
 
 		$ajax_refresh_lib='_'.$ajax_refresh_lib;
 
@@ -1981,7 +2101,7 @@ class TimeZoneCalculator {
 	*/
 
 	function calculator_print_styles() {
-		wp_enqueue_style($this->get_prefix().'datepicker');
+		wp_enqueue_style('unobtrusive_date_picker_widget');
 	}
 
 	/*
@@ -2091,6 +2211,28 @@ class TimeZoneCalculator {
 
 		</style>
 	<?php }
+
+	/*
+	checks if WordPress Admin Bar
+	is available and enabled
+	*/
+
+	function has_wp_admin_bar() {
+
+		/*
+		WordPress >= 3.1
+		*/
+
+		if (function_exists('is_admin_bar_showing'))
+			return is_admin_bar_showing();
+
+		/*
+		WordPress < 3.1
+		*/
+
+		else
+			return false;
+	}
 
 	/*
 	LOGIC FUNCTIONS
@@ -2371,28 +2513,11 @@ class TimeZoneCalculator {
 	}
 
 	/*
-	produce an inline clock
-
-	CSS inspired by "Hello Dolly" plugin
+	display clock with WordPress time
 	*/
 
-	private function inline_wordpress_clock($filter) {
-
-		/*
-		This makes sure that the
-		positioning is also good for
-		right-to-left languages
-		*/
-
-		$x='right';
-
-		if (function_exists('is_rtl'))
-			$x = (is_rtl()) ? 'left' : 'right';
-
-		$admin_css_colors=$this->get_admin_colors();		
-		$unfiltered_style="position:absolute;padding:3px 5px;top:1.15em;$x:400px;font-size:11px;background-color:$admin_css_colors[1];color:$admin_css_colors[3];-moz-border-radius:8px;line-height:15px";
-
-		$filtered_style=apply_filters($this->get_prefix().$filter.'_format_container', $unfiltered_style);
+	private function wordpress_clock($filter, $format_container, $format_timezone, $display) {
+		$filtered_style=apply_filters($this->get_prefix().$filter.'_format_container', $format_container);
 
 		$unfiltered_params=array(
 			'timezones' => array(
@@ -2403,7 +2528,7 @@ class TimeZoneCalculator {
 
 			'before_list' => '',
 			'after_list' => '',
-			'format_timezone' => '<span title="%name">%datetime</span> <abbr title="%name">%abbreviation</abbr>'
+			'format_timezone' => $format_timezone
 		);
 
 		$filtered_params=apply_filters($this->get_prefix().$filter, $unfiltered_params);
@@ -2411,10 +2536,10 @@ class TimeZoneCalculator {
 		$params=array(
 			'use_container' => true,
 			'format_container' => $filtered_style,
-			'display' => true
+			'display' => $display
 		);
 
-		$this->output(array_merge($filtered_params, $params));
+		return $this->output(array_merge($filtered_params, $params));
 	}
 
 	/*
@@ -2572,8 +2697,12 @@ class TimeZoneCalculator {
 	output current timezones-block
 	*/
 
-	private function current_timezones_block($filter) {
-		$filtered_params=apply_filters($this->get_prefix().$filter, array());
+	private function current_timezones_block($filter, $format_container='') {
+		$unfiltered_params=array(
+			'format_container' => $format_container
+		);
+
+		$filtered_params=apply_filters($this->get_prefix().$filter, $unfiltered_params);
 
 		$params=array(
 			'use_container' => true,
@@ -3696,7 +3825,7 @@ class TimeZoneCalculator {
 		<ul>
 			<li>You can choose that <a href="tools.php?page=<?php echo($this->get_calculator_tools_page()); ?>">user selected timezones</a> should be preferred to global and function call ones with the option <em>Prefer User TimeZones</em>.</li>
 
-			<li><a href="options-general.php">Your local WordPress Date/Time</a> can be displayed in the header of the Admin Menu if you enable <em>Display WordPress Clock in Admin Header</em>.</li>
+			<li><a href="options-general.php">Your local WordPress Date/Time</a> can be displayed in the <?php if ($this->has_wp_admin_bar()) echo('Admin Bar'); else echo('header of the Admin Menu'); ?> if you enable <em>Display WordPress Clock in Admin <?php if ($this->has_wp_admin_bar()) echo('Bar'); else echo('Header'); ?></em>.</li>
 
 			<li>As it may be a privacy invasion to provide someone with access to a certain user's timezones-selection, you can define the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones-selection of other users</em>.</li>
 

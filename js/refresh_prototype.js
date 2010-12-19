@@ -6,7 +6,7 @@ params (used only locally)
  - fields: all elements with the given class-name will be updated
  - compare_string: this string will be used for comparison with the result attribute in the json-response (starting at position 0)
  - callback_init
- - callback_finished
+ - callback_finished(json/null)
  - callback_error
 
 query_params (will be transferred to the server)
@@ -23,9 +23,6 @@ error-messages:
 */
 
 function timezonecalculator_refresh(params, query_params) {
-	if(typeof jQuery != 'undefined')
-		jQuery.noConflict();
-
 	if (!Object.isUndefined(params.get('callback_init')) && params.get('callback_init')!==null) {
 		var callback_init_function = params.get('callback_init');
 		window[callback_init_function()];
@@ -91,7 +88,18 @@ function timezonecalculator_refresh(params, query_params) {
 
 			if (!Object.isUndefined(response.request.options.params.get('callback_finished')) && response.request.options.params.get('callback_finished')!==null) {
 				var callback_finished_function = response.request.options.params.get('callback_finished');
-				window[callback_finished_function()];
+
+				var json;
+
+				try {
+					json=response.responseText.evalJSON(true);
+				}
+
+				catch(error) {
+					json=null;
+				}
+		
+				window[callback_finished_function(json)];
 			}
 		}
 	});
