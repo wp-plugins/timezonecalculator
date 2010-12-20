@@ -17,7 +17,7 @@ Calculates, displays and automatically updates times and dates in different time
 * based on PHP timezones database (please read the [FAQ](http://wordpress.org/extend/plugins/timezonecalculator/faq/) for further information)
 * fully optionpage-configurable
 * easy to integrate (ships with multi/sidebar- and dashboard-widget functionality as well as integrated timezones search function)
-* display clock in Admin Bar
+* display clock in WordPress 3.1 Admin Bar
 * display clock in Admin Menu header
 * possible to integrate in "Right Now" box on the dashboard or on the user's profile page
 * Calculator section in tools-Menu with individual timezone-selection for every user
