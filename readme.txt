@@ -261,6 +261,10 @@ This is not only a feature but also a security update. - Thus, I'd strongly reco
 
 == Changelog ==
 
+= 2.31 =
+
+* adopted Admin Bar implementation to re-worked WordPress code
+
 = 2.30 =
 
 * Changed default Ajax library to jQuery (Prototype is by default now only used for the settings and calculator pages)

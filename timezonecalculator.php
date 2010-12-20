@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.30
+Version: 2.31
 Author URI: http://www.bernhard.riedl.name/
 */
 
@@ -1814,7 +1814,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.30\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.31\"/>\n");
 	}
 
 	/*
@@ -1881,7 +1881,7 @@ class TimeZoneCalculator {
 		*/
 
 		if ($this->has_wp_admin_bar()) {
-			add_action('wp_before_admin_bar_render', array(&$this, 'admin_bar_wordpress_clock'), apply_filters($this->get_prefix().'admin_bar_clock_position', 1000));
+			add_action('admin_bar_menu', array(&$this, 'admin_bar_wordpress_clock'), apply_filters($this->get_prefix().'admin_bar_clock_position', 1000));
 
 			$this->options_page_sections['administrative_options']['fields']['include_wordpress_clock_admin_head']=str_replace('Header', 'Bar', $this->options_page_sections['administrative_options']['fields']['include_wordpress_clock_admin_head']);
 		}
@@ -1931,7 +1931,7 @@ class TimeZoneCalculator {
 	*/
 
 	function admin_bar_wordpress_clock() {
-		$format_container='display:inline';
+		$format_container='display:inline;line-height:28px';
 
 		/*
 		decide where the link of the clock
