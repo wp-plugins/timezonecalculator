@@ -263,7 +263,7 @@ This is not only a feature but also a security update. - Thus, I'd strongly reco
 
 = 2.31 =
 
-* adopted Admin Bar implementation to re-worked WordPress code
+* adopted Admin Bar implementation to re-worked WordPress code 
 
 = 2.30 =
 
