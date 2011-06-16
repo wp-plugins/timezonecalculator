@@ -5,14 +5,14 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.31
+Version: 2.40
 Author URI: http://www.bernhard.riedl.name/
 */
 
 /*
-Copyright 2005-2010 Dr. Bernhard Riedl
+Copyright 2005-2011 Dr. Bernhard Riedl
 
-Inspirations & Proof-Reading 2007-2010
+Inspirations & Proof-Reading 2007-2011
 by Veronika Grascher
 
 This program is free software:
@@ -111,7 +111,6 @@ class TimeZoneCalculator {
 		'use_ajax_refresh' => true,
 		'ajax_refresh_time' => 30,
 		'renew_nonce' => false,
-		'anonymous_ajax_refresh' => true,
 		'ajax_refresh_lib' => 'jquery',
 
 		'dashboard_widget' => false,
@@ -126,6 +125,9 @@ class TimeZoneCalculator {
 		'include_world_clock_user_profile' => false,
 
 		'include_wordpress_clock_admin_head' => false,
+
+		'all_users_can_view_timezones' => true,
+		'view_timezones_capability' => 'read',
 
 		'view_other_users_timezones_capability' => 'edit_users',
 
@@ -192,7 +194,6 @@ class TimeZoneCalculator {
 				'use_ajax_refresh' => 'Use Ajax Refresh',
 				'ajax_refresh_time' => 'Ajax Refresh Time',
 				'renew_nonce' => 'Renew nonce to assure continous updates',
-				'anonymous_ajax_refresh' => 'Allow anonymous Ajax Refresh Requests',
 				'ajax_refresh_lib' => 'Ajax Refresh Library in Front-End'
 				)
 		),
@@ -228,6 +229,8 @@ class TimeZoneCalculator {
 			'fields' => array(
 				'prefer_user_timezones' => 'Prefer User TimeZones',
 				'include_wordpress_clock_admin_head' => 'Display WordPress Clock in Admin Header',
+				'all_users_can_view_timezones' => 'All users can view timezones',
+				'view_timezones_capability' => 'Capability to view timezones',
 				'view_other_users_timezones_capability' => 'Capability to view timezones-selection of other users',
 				'debug_mode' => 'Enable Debug-Mode'
 			)
@@ -300,9 +303,9 @@ class TimeZoneCalculator {
 		TimeZoneCalculator JS
 		*/
 
-		wp_register_script($this->get_prefix().'refresh_prototype', $this->get_plugin_url().'js/refresh_prototype.js', array('prototype'), '2.30');
+		wp_register_script($this->get_prefix().'refresh_prototype', $this->get_plugin_url().'js/refresh_prototype.js', array('prototype'), '2.40');
 
-		wp_register_script($this->get_prefix().'refresh_jquery', $this->get_plugin_url().'js/refresh_jquery.js', array('jquery', 'jshashtable'), '2.30');
+		wp_register_script($this->get_prefix().'refresh_jquery', $this->get_plugin_url().'js/refresh_jquery.js', array('jquery', 'jshashtable'), '2.40');
 
 		wp_register_script($this->get_prefix().'utils', $this->get_plugin_url().'js/utils.js', array('prototype'), '2.10');
 
@@ -375,7 +378,7 @@ class TimeZoneCalculator {
 			can be restricted
 			*/
 
-			if ($this->get_option('anonymous_ajax_refresh'))
+			if ($this->get_option('all_users_can_view_timezones'))
 				add_action('wp_ajax_nopriv_'.$this->get_prefix().'output', array(&$this, 'wp_ajax_refresh'));
 		}
 
@@ -636,6 +639,13 @@ class TimeZoneCalculator {
 			$this->log('using fallback-defaults '.var_export($this->fallback_defaults, true));
 		}
 
+		/*
+		maybe upgrade to v2.40?
+		*/
+
+		if (array_key_exists('anonymous_ajax_refresh', $this->options))
+			$this->upgrade_v24();
+
 		$this->log('setting options to '.var_export($this->options, true));
 
 		$this->log('setting defaults to '.var_export($this->defaults, true));
@@ -668,18 +678,18 @@ class TimeZoneCalculator {
 			'display',
 			'use_ajax_refresh',
 			'renew_nonce',
-			'anonymous_ajax_refresh',
 			'dashboard_widget',
 			'dashboard_right_now',
 			'world_clock_tools_page',
 			'include_world_clock_user_profile',
 			'prefer_user_timezones',
 			'include_wordpress_clock_admin_head',
+			'all_users_can_view_timezones',
 			'debug_mode'
 		);
 
 		foreach ($check_fields as $check_field) {
-			$input[$check_field] = ($input[$check_field] == 1 ? true : false);
+			$input[$check_field] = (isset($input[$check_field]) && $input[$check_field] == 1 ? true : false);
 		}
 
 		/*
@@ -708,13 +718,14 @@ class TimeZoneCalculator {
 			'dashboard_right_now',
 			'calculator',
 			'world_clock_tools_page',
+			'view_timezones',
 			'view_other_users_timezones'
 		);
 
 		$capabilities=$this->get_all_capabilities();
 
 		foreach ($capability_fields as $capability_field) {
-			if (!in_array($input[$capability_field.'_capability'], $capabilities))
+			if (isset($input[$capability_field.'_capability']) && !in_array($input[$capability_field.'_capability'], $capabilities))
 				unset($input[$capability_field.'_capability']);
 		}
 
@@ -906,13 +917,43 @@ class TimeZoneCalculator {
 
 		$settings['use_container']='1';
 		$settings['display']='1';
-		$settings['anonymous_ajax_refresh']='1';
+		$settings['all_users_can_view_timezones']='1';
 
 		/*
 		validate retrieved settings
 		*/
 
 		$settings=$this->settings_validate($settings);
+
+		/*
+		store new settings
+		*/
+
+		update_option($this->get_prefix(false), $settings);
+
+		$this->log('upgrade finished. - retrieved options are: '.var_export($settings, true));
+	}
+
+	/*
+	upgrade options to TimeZoneCalculator v2.40
+	*/
+
+	private function upgrade_v24() {
+ 
+		$this->log('upgrade options to '.$this->get_nicename().' v2.40');
+
+		/*
+		rename setting
+		*/
+
+		$this->options['all_users_can_access_timezones']=$this->options['anonymous_ajax_refresh'];
+
+		unset($this->options['anonymous_ajax_refresh']);
+
+		$settings=array();
+
+		$settings['defaults']=$this->defaults;
+		$settings['options']=$this->options;
 
 		/*
 		store new settings
@@ -1050,6 +1091,9 @@ class TimeZoneCalculator {
 		security check
 		*/
 
+		if (!$this->get_option('all_users_can_view_timezones') && !current_user_can($this->get_option('view_timezones_capability')))
+			die('-1');
+
 		$security_string.=$action.str_replace(array('\n', "\n"), '', $query_string);
 
 		check_ajax_referer($security_string);
@@ -1110,7 +1154,7 @@ class TimeZoneCalculator {
 		}
 
 		/*
-		call function output/count
+		call function output
 		*/
 
 		$json_params['result']=call_user_func(array($this, $method), $params);
@@ -1393,7 +1437,7 @@ class TimeZoneCalculator {
 	and a timezone into a UTC unix timestamp
 	*/
 
-	function calculate_date($query_time, $query_timezone, $current_utc=TIMEZONECALCULATOR_CURRENTGMDATE) {
+	function calculate_date($query_time, $query_timezone=null, $current_utc=TIMEZONECALCULATOR_CURRENTGMDATE) {
 		$ret_val=false;
 
 		/*
@@ -1814,7 +1858,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.31\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.40\"/>\n");
 	}
 
 	/*
@@ -1977,7 +2021,17 @@ class TimeZoneCalculator {
 		*/
 
 		global $wp_admin_bar;
-		$wp_admin_bar->add_menu(array( 'id' => $this->get_prefix(false), 'title' => $wordpress_clock_span, 'href' => $clock_href));
+
+		if (!is_object($wp_admin_bar))
+			return false;
+
+		$wp_admin_bar->add_menu(
+			array(
+				'id' => $this->get_prefix(false),
+				'title' => $wordpress_clock_span,
+				'href' => $clock_href
+			)
+		);
 	}
 
 	/*
@@ -2002,6 +2056,14 @@ class TimeZoneCalculator {
 	*/
 
 	function refresh_print_scripts() {
+
+		/*
+		security check
+		*/
+
+		if (!$this->get_option('all_users_can_view_timezones') && !current_user_can($this->get_option('view_timezones_capability')))
+			return;
+
 		$ajax_refresh_lib=$this->get_option('ajax_refresh_lib');
 
 		/*
@@ -2016,7 +2078,7 @@ class TimeZoneCalculator {
 		scriptaculous drag and drop
 		*/
 
-		if (defined('WP_ADMIN') && WP_ADMIN) {
+		if (is_admin()) {
 			$ajax_refresh_lib='jquery';
 
 			global $current_screen;
@@ -2032,8 +2094,15 @@ class TimeZoneCalculator {
 		$security_string=$this->get_prefix().'output';
 		$_ajax_nonce=wp_create_nonce($security_string);
 
-		wp_localize_script($this->get_prefix().'refresh'.$ajax_refresh_lib, $this->get_prefix().'refresh_settings', array('ajax_url' => admin_url('admin-ajax.php'),
-'_ajax_nonce' => $_ajax_nonce, 'refresh_time' => $this->get_option('ajax_refresh_time')));
+		wp_localize_script(
+			$this->get_prefix().'refresh'.$ajax_refresh_lib,
+			$this->get_prefix().'refresh_settings',
+			array(
+				'ajax_url' => admin_url('admin-ajax.php'),
+				'_ajax_nonce' => $_ajax_nonce,
+				'refresh_time' => $this->get_option('ajax_refresh_time')
+			)
+		);
 	}
 
 	/*
@@ -2249,6 +2318,13 @@ class TimeZoneCalculator {
 		*/
 
 		$this->log('function _output, $params='.var_export($params, true));
+
+		/*
+		security check
+		*/
+
+		if (!$this->get_option('all_users_can_view_timezones') && !current_user_can($this->get_option('view_timezones_capability')))
+			throw new Exception('You are not authorized to view timezones!');
 
 		/*
 		fill params with default-values
@@ -2845,7 +2921,18 @@ class TimeZoneCalculator {
 		?>
 		</ul></div>
 
-		<div class="<?php echo($this->get_prefix()); ?>wrap">
+		<div id="<?php echo($this->get_prefix()); ?>content" class="<?php echo($this->get_prefix()); ?>wrap">
+
+		<script type="text/javascript">
+
+		/* <![CDATA[ */
+
+		if ($('<?php echo($this->get_prefix()); ?>content'))
+			$('<?php echo($this->get_prefix()); ?>content').style.display="none";
+
+		/* ]]> */
+
+		</script>
 
 		<?php if ($is_wp_options) { ?>
 			<form method="post" action="<?php echo(admin_url('options.php')); ?>">
@@ -2922,12 +3009,14 @@ class TimeZoneCalculator {
 	<?php echo($this->get_prefix()); ?>open_section(section);
 
 	/*
-	display js-menu
+	display js-menu and content-block
 	if js has been disabled,
 	the menu will not be visible
 	*/
 
 	$('<?php echo($this->get_prefix()); ?>menu').style.display="block";
+
+	$('<?php echo($this->get_prefix()); ?>content').style.display="block";
 
 	/* ]]> */
 
@@ -3314,9 +3403,10 @@ class TimeZoneCalculator {
 	outputs support paragraph
 	*/
 
-	private function neotrinity_support() { ?>
+	private function neotrinity_support() {
+		global $user_identity; ?>
 		<h3>Support</h3>
-		If you like to support the development of <?php echo($this->get_nicename()); ?>, you can invite me for a <a target="_blank" href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&amp;business=bernhard%40riedl%2ename&amp;item_name=Donation%20for%20TimeZoneCalculator&amp;no_shipping=1&amp;no_note=1&amp;tax=0&amp;currency_code=EUR&amp;bn=PP%2dDonationsBF&amp;charset=UTF%2d8">virtual pizza</a> for my work. <?php echo(convert_smilies(':)')); ?><br /><br />
+		<?php echo($user_identity); ?>, if you would like to support the development of <?php echo($this->get_nicename()); ?>, you can invite me for a <a target="_blank" href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&amp;business=bernhard%40riedl%2ename&amp;item_name=Donation%20for%20TimeZoneCalculator&amp;no_shipping=1&amp;no_note=1&amp;tax=0&amp;currency_code=EUR&amp;bn=PP%2dDonationsBF&amp;charset=UTF%2d8">virtual pizza</a> for my work. <?php echo(convert_smilies(':)')); ?><br /><br />
 
 		<form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_xclick" /><input type="hidden" name="business" value="&#110;&#101;&#111;&#64;&#x6E;&#x65;&#x6F;&#x74;&#x72;&#105;&#110;&#x69;&#x74;&#x79;&#x2E;&#x61;t" /><input type="hidden" name="item_name" value="Donation for TimeZoneCalculator" /><input type="hidden" name="no_shipping" value="2" /><input type="hidden" name="no_note" value="1" /><input type="hidden" name="currency_code" value="EUR" /><input type="hidden" name="tax" value="0" /><input type="hidden" name="bn" value="PP-DonationsBF" /><input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" style="border:0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" /><img alt="if you like to, you can support me" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" /></form><br />
 
@@ -3718,14 +3808,12 @@ class TimeZoneCalculator {
 
 			<li>Due to security reasons, the time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates will be limited by default. WordPress normally defines this time to be 24 hours. If you activate <em>Renew nonce to assure continous updates</em> you override this security feature but provide unlimited time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates of your timezones.</li>
 
-			<li>You can also choose to allow only logged in users to execute <abbr title="asynchronous JavaScript and XML">Ajax</abbr> refresh operations if you deactivate the option <em>Allow anonymous Ajax Refresh Requests</em>.</li>
-
 			<li>In the last option, <em>Ajax Refresh Library in Front-End</em>, you can choose whether to use <a target="_blank" href="http://jquery.com/">jQuery</a> or <a target="_blank" href="http://www.prototypejs.org/">Prototype</a> for the Ajax Refresh in your theme.</li>
 		</ul>
 	<?php }
 
 	function setting_use_ajax_refresh($params=array()) {
-		$this->setting_checkfield('use_ajax_refresh', 'options', array('ajax_refresh_time', 'renew_nonce', 'anonymous_ajax_refresh', 'ajax_refresh_lib'));
+		$this->setting_checkfield('use_ajax_refresh', 'options', array('ajax_refresh_time', 'renew_nonce', 'ajax_refresh_lib'));
 	}
 
 	function setting_ajax_refresh_time($params=array()) {
@@ -3734,10 +3822,6 @@ class TimeZoneCalculator {
 
 	function setting_renew_nonce($params=array()) {
 		$this->setting_checkfield('renew_nonce', 'options');
-	}
-
-	function setting_anonymous_ajax_refresh($params=array()) {
-		$this->setting_checkfield('anonymous_ajax_refresh', 'options');
 	}
 
 	function setting_ajax_refresh_lib($params=array()) {
@@ -3827,7 +3911,9 @@ class TimeZoneCalculator {
 
 			<li><a href="options-general.php">Your local WordPress Date/Time</a> can be displayed in the <?php if ($this->has_wp_admin_bar()) echo('Admin Bar'); else echo('header of the Admin Menu'); ?> if you enable <em>Display WordPress Clock in Admin <?php if ($this->has_wp_admin_bar()) echo('Bar'); else echo('Header'); ?></em>.</li>
 
-			<li>As it may be a privacy invasion to provide someone with access to a certain user's timezones-selection, you can define the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones-selection of other users</em>.</li>
+			<li>If you want to keep the timezones as a secret, you can deactivate <em>All users can view timezones</em>. In that case, only users with the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones</em> can access this information.</li>
+
+			<li>As it may be a privacy invasion to provide someone with access to a certain user's timezones-selection, you can define in addition the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones-selection of other users</em>. In others words, if Alice wants to access Bob's timezones-selection, she needs to have both of the mentioned capabilities.</li>
 
 			<li>The <em>Debug Mode</em> can be used to have a look on the actions undertaken by <?php echo($this->get_nicename()); ?> and to investigate unexpected behaviour.</li>
 		</ul>
@@ -3841,6 +3927,14 @@ class TimeZoneCalculator {
 
 	function setting_include_wordpress_clock_admin_head($params=array()) {
 		$this->setting_checkfield('include_wordpress_clock_admin_head', 'options');
+	}
+
+	function setting_all_users_can_view_timezones($params=array()) {
+		$this->setting_checkfield('all_users_can_view_timezones', 'options', array('view_timezones_capability'), false);
+	}
+
+	function setting_view_timezones_capability($params=array()) {
+		$this->setting_capability('view_timezones', 'options');
 	}
 
 	function setting_view_other_users_timezones_capability($params=array()) {
@@ -4043,7 +4137,7 @@ class TimeZoneCalculator {
 
 	- `prefer_user_timezones`: prefer user set timezones - if they exist - to global or function call timezones; default is `false`
 
-	- `use_container`: if set to `true` (default value), the current UTC is used as `query_time` and the same selected stats and format is used as set in the admin menu, TimeZoneCalculator wraps the output in a html div with the class `timezonecalculator-refreshable-output` - the class `timezonecalculator-output` will be used for all other output; if you set `use_container` to `false`, no container div will be generated
+	- `use_container`: if set to `true` (default value), the current UTC is used as `query_time` and the same selected timezones and format is used as set in the admin menu, TimeZoneCalculator wraps the output in a html div with the class `timezonecalculator-refreshable-output` - the class `timezonecalculator-output` will be used for all other output; if you set `use_container` to `false`, no container div will be generated
 
 	- `display`: if you want to return the timezone-information (e.g. for storing in a variable) instead of echoing it with this function-call, set this to `false`; default setting is `true`
 
@@ -4481,18 +4575,23 @@ class WP_Widget_TimeZoneCalculator extends WP_Widget {
 		if (isset($instance['prefer_user_timezones']))
 			$prefer_user_timezones=$instance['prefer_user_timezones'];
 
-		echo $before_widget;
-		echo $before_title . $title . $after_title;
-
 		$params=array(
 			'use_container' => true,
-			'display' => true,
+			'display' => false,
 			'prefer_user_timezones' => $prefer_user_timezones
 		);
 
-		$timezonecalculator->output($params);
+		$timezones=$timezonecalculator->output($params);
 
-	    	echo $after_widget;
+		if (empty($timezones))
+			return;
+
+		echo $before_widget;
+		echo $before_title . $title . $after_title;
+
+		echo $timezones;
+
+		echo $after_widget;
 	}
 
 	/*

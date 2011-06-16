@@ -145,17 +145,19 @@ function timezonecalculator_initiate_refresh(params, query_params) {
 
 var timezonecalculator_params = new Hash();
 
-timezonecalculator_params.set('compare_string', '<div class="timezonecalculator-refreshable-output"');
-
-timezonecalculator_params.set('fields', 'div.timezonecalculator-refreshable-output');
-
 var timezonecalculator_query_params = new Hash();
 
-timezonecalculator_query_params.set('action', 'timezonecalculator_output');
-
-timezonecalculator_query_params.set('_ajax_nonce', timezonecalculator_refresh_settings._ajax_nonce);
-
 Event.observe(window, 'load', function(e){
-	if ($$('div.timezonecalculator-refreshable-output').length>0)
+	if ($$('div.timezonecalculator-refreshable-output').length>0) {
+
+			timezonecalculator_params.set('compare_string', '<div class="timezonecalculator-refreshable-output"');
+
+			timezonecalculator_params.set('fields', 'div.timezonecalculator-refreshable-output');
+
+			timezonecalculator_query_params.set('action', 'timezonecalculator_output');
+
+			timezonecalculator_query_params.set('_ajax_nonce', timezonecalculator_refresh_settings._ajax_nonce);
+
 			timezonecalculator_register_refresh(timezonecalculator_params, timezonecalculator_query_params);
+	}
 });
