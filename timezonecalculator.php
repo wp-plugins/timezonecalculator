@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.40
+Version: 2.41
 Author URI: http://www.bernhard.riedl.name/
 */
 
@@ -1858,7 +1858,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.40\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.41\"/>\n");
 	}
 
 	/*
@@ -1959,7 +1959,19 @@ class TimeZoneCalculator {
 
 		$admin_css_colors=$this->get_admin_colors();
 
-		$format_container="position:absolute;padding:3px 5px;top:1.15em;$x:400px;font-size:11px;background-color:$admin_css_colors[1];color:$admin_css_colors[3];-moz-border-radius:8px;line-height:15px";
+		$top='1.15em';
+
+		global $wp_version;
+
+		/*
+		we need to adjust the top-position
+		for WordPress >= 3.2
+		*/
+
+		if (version_compare($wp_version, '3.2', '>='))
+			$top='0.5em';
+
+		$format_container="position:absolute;padding:3px 5px;top:$top;$x:400px;font-size:11px;background-color:$admin_css_colors[1];color:$admin_css_colors[3];-moz-border-radius:8px;line-height:15px";
 
 		$format_timezone='<span title="%name">%datetime</span> <abbr title="%name">%abbreviation</abbr>';
 
@@ -2094,11 +2106,18 @@ class TimeZoneCalculator {
 		$security_string=$this->get_prefix().'output';
 		$_ajax_nonce=wp_create_nonce($security_string);
 
+		/*
+		make sure that Ajax-queries use
+		the same protocol as the site
+		*/
+
+		$ajax_url=admin_url('admin-ajax.php', is_ssl() ? 'https' : 'http');
+
 		wp_localize_script(
 			$this->get_prefix().'refresh'.$ajax_refresh_lib,
 			$this->get_prefix().'refresh_settings',
 			array(
-				'ajax_url' => admin_url('admin-ajax.php'),
+				'ajax_url' => $ajax_url,
 				'_ajax_nonce' => $_ajax_nonce,
 				'refresh_time' => $this->get_option('ajax_refresh_time')
 			)
