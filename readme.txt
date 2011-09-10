@@ -22,6 +22,7 @@ Calculates, displays and automatically updates times and dates in different time
 * possible to integrate in "Right Now" box on the dashboard or on the user's profile page
 * Calculator section in tools-Menu with individual timezone-selection for every user
 * optional Ajax refresh (jQuery or Prototype)
+* fully compatible with [https/SSL/TLS-sites](http://codex.wordpress.org/Administration_Over_SSL)
 * drag and drop admin menu page
 * fully WP 3.0 multi-site network compatible
 * clean uninstall
@@ -73,7 +74,7 @@ That's [a well-covered topic in the web](https://encrypted.google.com/search?q=p
 
 = Why is 'Drag and Drop' not working? Why can't I see the 'Drag and Drop' section? =
 
-This section is based on Javascript. Thus, you have to enable Javascript in your browser (this is a default setting in a [modern browser](http://browsehappy.com/) like [Firefox](http://www.mozilla.com/?from=sfx&uid=313633&t=306)). TimeZoneCalculator is still fully functional without these constraints, but you need to customize your stats manually as in older versions of TimeZoneCalculator.
+This section is based on Javascript. Thus, you have to enable Javascript in your browser (this is a default setting in a modern browser like [Firefox](http://www.mozilla.org/firefox?WT.mc_id=aff_en01&WT.mc_ev=click)). TimeZoneCalculator is still fully functional without these constraints, but you need to customize your stats manually as in older versions of TimeZoneCalculator.
 
 = How can I adopt the color scheme in the TimeZoneCalculator Settings Tab? =
 
@@ -260,6 +261,10 @@ Array-Structure:
 This is not only a feature but also a security update. - Thus, I'd strongly recommend all users of TimeZoneCalculator which have at least an environment of WordPress 2.8 or higher and PHP 5 to install this version!
 
 == Changelog ==
+
+= 2.42 =
+
+* changed spin-url to also be delivered according to the site's protocol
 
 = 2.41 =
 

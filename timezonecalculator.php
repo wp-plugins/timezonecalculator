@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.41
+Version: 2.42
 Author URI: http://www.bernhard.riedl.name/
 */
 
@@ -1858,7 +1858,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.41\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.42\"/>\n");
 	}
 
 	/*
@@ -4032,7 +4032,7 @@ class TimeZoneCalculator {
 		</table>
 
 		<div class="submit">
-			<img style="display:none" src="<?php echo(get_option('home')); ?>/wp-admin/images/wpspin_light.gif" alt="please wait..." id="<?php echo($this->get_prefix()); ?>wait_calculator" />
+			<img style="display:none" src="<?php echo(admin_url('images/wpspin_light.gif')); ?>" alt="please wait..." id="<?php echo($this->get_prefix()); ?>wait_calculator" />
 			<input class="button-primary" type="button" name="<?php echo($this->get_prefix()); ?>calculate_time" id="<?php echo($this->get_prefix()); ?>calculate_time" value="<?php _e('Calculate time') ?>" />
 			<input class="button-primary" type="button" name="<?php echo($this->get_prefix()); ?>form_reset" id="<?php echo($this->get_prefix()); ?>form_reset" value="<?php _e('Reset') ?>" />
 		</div>
