@@ -5,14 +5,14 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.neotrinity.at/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.42
+Version: 2.43
 Author URI: http://www.bernhard.riedl.name/
 */
 
 /*
-Copyright 2005-2011 Dr. Bernhard Riedl
+Copyright 2005-2012 Dr. Bernhard Riedl
 
-Inspirations & Proof-Reading 2007-2011
+Inspirations & Proof-Reading 2007-2012
 by Veronika Grascher
 
 This program is free software:
@@ -274,8 +274,6 @@ class TimeZoneCalculator {
 
 		$this->set_plugin_url();
 		$this->retrieve_settings();
-		$this->register_scripts();
-		$this->register_styles();
 		$this->register_hooks();
 	}
 
@@ -283,7 +281,7 @@ class TimeZoneCalculator {
 	register js libraries
 	*/
 
-	private function register_scripts() {
+	function register_scripts() {
 
 		/*
 		DatePicker v5.4 by frequency-decoder.com
@@ -322,7 +320,7 @@ class TimeZoneCalculator {
 	register css styles
 	*/
 
-	private function register_styles() {
+	function register_styles() {
 		wp_register_style('unobtrusive_date_picker_widget', $this->get_plugin_url().'js/datepicker/css/datepicker.css', array(), '5.4');
 	}
 
@@ -331,6 +329,13 @@ class TimeZoneCalculator {
 	*/
 
 	private function register_hooks() {
+
+		/*
+		register externals
+		*/
+
+		add_action('init', array(&$this, 'register_scripts'));
+		add_action('init', array(&$this, 'register_styles'));
 
 		/*
 		general
@@ -609,13 +614,27 @@ class TimeZoneCalculator {
 			}
 
 			/*
-			for some strange reason,
-			WordPress doesn't like to
-			write to an empty option
+			we intentionally write
+			the fallbacks in the
+			database to activate
+			built-in caching
+			and repair a broken
+			settings-array
 			*/
 
 			else {
-				update_option($this->get_prefix(false), array());
+				$defaults=$this->fallback_defaults;
+
+				unset($defaults['query_time']);
+				unset($defaults['query_timezone']);
+
+				update_option(
+					$this->get_prefix(false),
+					array(
+						'defaults' => $defaults,
+						'options' => $this->fallback_options
+					)
+				);
 			}
 		}
 
@@ -663,14 +682,20 @@ class TimeZoneCalculator {
 		*/
 
 		if (isset($input['reset'])) {
+			$defaults=$this->fallback_defaults;
+
+			unset($defaults['query_time']);
+			unset($defaults['query_timezone']);
+
 			return array(
-				'defaults' => $this->fallback_defaults,
+				'defaults' => $defaults,
 				'options' => $this->fallback_options
 			);
 		}
 
 		/*
-		check-fields are either 0 or 1
+		check-fields will be
+		converted to true/false
 		*/
 
 		$check_fields=array(
@@ -689,7 +714,7 @@ class TimeZoneCalculator {
 		);
 
 		foreach ($check_fields as $check_field) {
-			$input[$check_field] = (isset($input[$check_field]) && $input[$check_field] == 1 ? true : false);
+			$input[$check_field] = (isset($input[$check_field]) && $input[$check_field] == 1) ? true : false;
 		}
 
 		/*
@@ -1761,6 +1786,14 @@ class TimeZoneCalculator {
 	}
 
 	/*
+	Calculator Page Help Tab
+	*/
+
+	function calculator_page_help_tab() {
+		$this->add_help_tab($this->calculator_page_help());
+	}
+
+	/*
 	Calculator World-Clock-Page
 	*/
 
@@ -1783,6 +1816,14 @@ class TimeZoneCalculator {
 
 	function options_page() {
 		$this->settings_page($this->options_page_sections, 'manage_options', 'settings', true);
+	}
+
+	/*
+	Options Page Help Tab
+	*/
+
+	function options_page_help_tab() {
+		$this->add_help_tab($this->options_page_help());
 	}
 
 	/*
@@ -1828,7 +1869,7 @@ class TimeZoneCalculator {
 
 		add_action('admin_print_scripts-'.$options_page, array(&$this, 'settings_print_scripts'));
 		add_action('admin_head-'.$options_page, array(&$this, 'admin_styles'));
-		add_contextual_help($options_page, $this->options_page_help());
+		add_action('load-'.$options_page, array(&$this, 'options_page_help_tab'));
 
 		/*
 		calculator tools page
@@ -1840,7 +1881,7 @@ class TimeZoneCalculator {
 		add_action('admin_print_scripts-'.$calculator_page, array(&$this, 'refresh_print_scripts'));
 		add_action('admin_print_styles-'.$calculator_page, array(&$this, 'calculator_print_styles'));
 		add_action('admin_head-'.$calculator_page, array(&$this, 'admin_styles'));
-		add_contextual_help($calculator_page, $this->calculator_page_help());
+		add_action('load-'.$calculator_page, array(&$this, 'calculator_page_help_tab'));
 
 		/*
 		world clock tools page
@@ -1858,7 +1899,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.42\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.43\"/>\n");
 	}
 
 	/*
@@ -2037,13 +2078,27 @@ class TimeZoneCalculator {
 		if (!is_object($wp_admin_bar))
 			return false;
 
-		$wp_admin_bar->add_menu(
-			array(
-				'id' => $this->get_prefix(false),
-				'title' => $wordpress_clock_span,
-				'href' => $clock_href
-			)
+		$admin_bar_params=array(
+			'id' => $this->get_prefix(false),
+			'title' => $wordpress_clock_span,
+			'href' => $clock_href
 		);
+
+		/*
+		WordPress >= 3.3
+		*/
+
+		global $wp_version;
+
+		if (version_compare($wp_version, '3.3', '>='))
+			$wp_admin_bar->add_node($admin_bar_params);
+
+		/*
+		WordPress < 3.3
+		*/
+
+		else
+			$wp_admin_bar->add_menu($admin_bar_params);
 	}
 
 	/*
@@ -2903,6 +2958,35 @@ class TimeZoneCalculator {
 
 	private function do_settings_sections($section_key, $section_prefix) {
 		do_settings_sections($this->get_prefix().$section_prefix.'_'.$section_key);
+	}
+
+	/*
+	handles adding a help-tab
+	*/
+
+	private function add_help_tab($help_text) {
+		$current_screen=get_current_screen();
+
+		/*
+		WP >= 3.0
+		*/
+
+		if (!method_exists($current_screen, 'add_help_tab'))
+			add_contextual_help($current_screen, $help_text);
+
+		/*
+		WP >= 3.3
+		*/
+
+		else {
+			$help_options=array(
+				'id' => $this->get_prefix(),
+				'title' => $this->get_nicename(),
+				'content' => $help_text
+			);
+
+			$current_screen->add_help_tab($help_options);
+		}
 	}
 
 	/*
@@ -3825,7 +3909,7 @@ class TimeZoneCalculator {
 
 			<li>Remember that on every refresh all timezone-information has to be retrieved from the server. Thus, an <em>Ajax Refresh Time</em> of one second is not practicable for the average server out there. In addition, every update causes bandwith usage for your readers and your server.</li>
 
-			<li>Due to security reasons, the time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates will be limited by default. WordPress normally defines this time to be 24 hours. If you activate <em>Renew nonce to assure continous updates</em> you override this security feature but provide unlimited time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates of your timezones.</li>
+			<li>Due to security reasons, the time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates will be limited by default. In your installation, the nonce-life-time is defined as <?php $nonce_life=apply_filters('nonce_life', 86400); echo(number_format((float) ($nonce_life/3600), 0).' hours ('.$nonce_life.' seconds)'); ?>. If you activate <em>Renew nonce to assure continous updates</em> you override this security feature (only for <?php echo($this->get_nicename()); ?>) but provide unlimited time for <abbr title="asynchronous JavaScript and XML">Ajax</abbr> updates of your timezones.</li>
 
 			<li>In the last option, <em>Ajax Refresh Library in Front-End</em>, you can choose whether to use <a target="_blank" href="http://jquery.com/">jQuery</a> or <a target="_blank" href="http://www.prototypejs.org/">Prototype</a> for the Ajax Refresh in your theme.</li>
 		</ul>
@@ -3999,7 +4083,7 @@ class TimeZoneCalculator {
 	*/
 
 	function callback_calculator_intro() { ?>
-		This section is meant to be your personal timezones calculator (e.g. for checking flight schedules or finding online friends in other timezones). - You can specify a certain timestamp, which will be displayed in the <?php echo($this->get_section_link($this->calculator_page_sections, 'selected_timezones', 'timezones')); ?> that you've chosen.
+		This section is meant to be your personal timezones calculator (e.g. for checking flight schedules or determining the current time of your friends round the globe). - You can specify a certain timestamp, which will be displayed in the <?php echo($this->get_section_link($this->calculator_page_sections, 'selected_timezones', 'timezones')); ?> that you've chosen.
 		<?php if ($this->get_option('world_clock_tools_page') && current_user_can($this->get_option('world_clock_tools_page_capability'))) { ?><br /><br />You can also view the current time of your timezones<?php if ($this->get_option('use_ajax_refresh')) { ?>, which automatically updates,<?php } ?> on the <a href="tools.php?page=<?php echo($this->get_world_clock_tools_page()); ?>">world clock</a>.<?php } ?>
 	<?php }
 

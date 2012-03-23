@@ -3,7 +3,7 @@ Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=bernhard%40riedl%2ename&item_name=Donation%20for%20TimeZoneCalculator&no_shipping=1&no_note=1&tax=0&currency_code=EUR&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, jquery, prototype, bar, admin bar
 Requires at least: 2.8
-Tested up to: 3.3
+Tested up to: 3.4
 Stable tag: trunk
 
 Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
@@ -17,10 +17,10 @@ Calculates, displays and automatically updates times and dates in different time
 * based on PHP timezones database (please read the [FAQ](http://wordpress.org/extend/plugins/timezonecalculator/faq/) for further information)
 * fully optionpage-configurable
 * easy to integrate (ships with multi/sidebar- and dashboard-widget functionality as well as integrated timezones search function)
-* display clock in WordPress 3.1 Admin Bar
+* display clock in WordPress 3.1+ Admin Bar
 * display clock in Admin Menu header
-* possible to integrate in "Right Now" box on the dashboard or on the user's profile page
-* Calculator section in tools-Menu with individual timezone-selection for every user
+* possible to integrate in "Right Now" box or to display as widget on the dashboard and on the user's profile page
+* Calculator section in Tools-Menu with individual timezone-selection for every user
 * optional Ajax refresh (jQuery or Prototype)
 * fully compatible with [https/SSL/TLS-sites](http://codex.wordpress.org/Administration_Over_SSL)
 * drag and drop admin menu page
@@ -248,7 +248,7 @@ Array-Structure:
 
 2. This picture presents the Preview Section of the TimeZoneCalculator Tab in the Admin Menu.
 
-3. This screenshot shows an example of the clock in the WordPress 3.1 Admin Bar. - The date/time and the display format can be customized.
+3. This screenshot shows an example of the clock in the WordPress 3.1+ Admin Bar. - The date/time and the display format can be customized.
 
 4. This image presents an example of the clock of the Admin Menu. - The date/time and the display format can be customized.
 
@@ -261,6 +261,13 @@ Array-Structure:
 This is not only a feature but also a security update. - Thus, I'd strongly recommend all users of TimeZoneCalculator which have at least an environment of WordPress 2.8 or higher and PHP 5 to install this version!
 
 == Changelog ==
+
+= 2.43 =
+
+* changed handling of contextual help for WordPress 3.3
+* implemented WordPress 3.3 Admin Bar add_node() function
+* adopted handling of default settings
+* external files are now registered in init-hook
 
 = 2.42 =
 
