@@ -5,6 +5,8 @@ Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sideba
 Requires at least: 2.8
 Tested up to: 3.4
 Stable tag: trunk
+License: GPLv3 or later
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 
