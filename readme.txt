@@ -3,7 +3,7 @@ Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=J6ZGWTZT4M29U
 Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, jquery, prototype, bar, admin bar
 Requires at least: 2.8
-Tested up to: 3.5
+Tested up to: 3.6
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -263,6 +263,10 @@ Array-Structure:
 This is not only a feature but also a security update. - Thus, I'd strongly recommend all users of TimeZoneCalculator which have at least an environment of WordPress 2.8 or higher and PHP 5 to install this version!
 
 == Changelog ==
+
+= 2.45 =
+* made add-link to [link manager for WordPress 3.5 and higher optional](https://core.trac.wordpress.org/ticket/21307)
+* fixed some HTML5 deprecated warnings
 
 = 2.44 =
 * extended length of format_timezone-string to 150 chars

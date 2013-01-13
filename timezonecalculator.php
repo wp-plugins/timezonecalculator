@@ -5,14 +5,14 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.bernhard-riedl.com/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 2.44
+Version: 2.45
 Author URI: http://www.bernhard-riedl.com/
 */
 
 /*
-Copyright 2005-2012 Dr. Bernhard Riedl
+Copyright 2005-2013 Dr. Bernhard Riedl
 
-Inspirations & Proof-Reading 2007-2012
+Inspirations & Proof-Reading 2007-2013
 by Veronika Grascher
 
 This program is free software:
@@ -1899,7 +1899,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.44\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"2.45\"/>\n");
 	}
 
 	/*
@@ -3513,7 +3513,7 @@ class TimeZoneCalculator {
 
 		<form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_s-xclick"><input type="hidden" name="hosted_button_id" value="J6ZGWTZT4M29U"><input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" style="border:0" name="submit" alt="PayPal - The safer, easier way to pay online!"><img alt="" style="border:0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1"></form><br />
 
-		Maybe you also want to <?php if (current_user_can('manage_links')) { ?><a href="link-add.php"><?php } ?>add a link<?php if (current_user_can('manage_links')) { ?></a><?php } ?> to <a target="_blank" href="http://www.bernhard-riedl.com/projects/">http://www.bernhard-riedl.com/projects/</a>.<?php if(strpos($_SERVER['HTTP_HOST'], 'journeycalculator.com')===false) { ?><br /><br />
+		Maybe you also want to <?php if (current_user_can('manage_links') && ((!has_filter('default_option_link_manager_enabled') || get_option( 'link_manager_enabled')))) { ?><a href="link-add.php"><?php } ?>add a link<?php if (current_user_can('manage_links') && ((!has_filter('default_option_link_manager_enabled') || get_option( 'link_manager_enabled')))) { ?></a><?php } ?> to <a target="_blank" href="http://www.bernhard-riedl.com/projects/">http://www.bernhard-riedl.com/projects/</a>.<?php if(strpos($_SERVER['HTTP_HOST'], 'journeycalculator.com')===false) { ?><br /><br />
 
 		Fancy on timezones-calculation? - Try the free <a target="_blank" href="http://www.journeycalculator.com/">JourneyCalculator</a>...<?php } ?>
 <br /><br />
@@ -3709,23 +3709,23 @@ class TimeZoneCalculator {
 
 			<table style="display:none; margin-bottom:0" id="<?php echo($this->get_prefix()); ?>edit_details" class="form-table">
 
-			<tr valign="top">
+			<tr>
 				<th scope="row"><label for="<?php echo($this->get_prefix()); ?>edit_use_db_abbreviations">Use DB Abbreviations</label></th>
 				<td><input type="checkbox" onclick="<?php echo($this->get_prefix()); ?>toggle_related_fields(this, <?php echo($this->get_prefix()); ?>edit_abbr_fields, false);" checked="checked" id="<?php echo($this->get_prefix()); ?>edit_use_db_abbreviations" /></td>
 			</tr>
 
 			<?php foreach($edit_abbr_fields as $key => $edit_abbr_field) {
-				echo('<tr valign="top"><th scope="row"><label for="'.$this->get_prefix().'edit_'.$key.'">'.$edit_abbr_field.'</label></th>');
+				echo('<tr><th scope="row"><label for="'.$this->get_prefix().'edit_'.$key.'">'.$edit_abbr_field.'</label></th>');
 			echo('<td><input disabled="disabled" id="'.$this->get_prefix().'edit_'.$key.'" type="text" size="10" maxlength="15" /></td></tr>');
 			} ?>
 
-			<tr valign="top">
+			<tr>
 				<th scope="row"><label for="<?php echo($this->get_prefix()); ?>edit_use_db_names">Use DB Names</label></th>
 				<td><input type="checkbox" onclick="<?php echo($this->get_prefix()); ?>toggle_related_fields(this, <?php echo($this->get_prefix()); ?>edit_name_fields, false);" checked="checked" id="<?php echo($this->get_prefix()); ?>edit_use_db_names" /></td>
 			</tr>
 
 			<?php foreach($edit_name_fields as $key => $edit_name_field) {
-				echo('<tr valign="top"><th scope="row"><label for="'.$this->get_prefix().'edit_'.$key.'">'.$edit_name_field.'</label></th>');
+				echo('<tr><th scope="row"><label for="'.$this->get_prefix().'edit_'.$key.'">'.$edit_name_field.'</label></th>');
 			echo('<td><input disabled="disabled" id="'.$this->get_prefix().'edit_'.$key.'" type="text" size="30" maxlength="50" /></td></tr>');
 			} ?>
 
