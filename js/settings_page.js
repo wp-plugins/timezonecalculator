@@ -3,9 +3,9 @@ hide all option-page sections
 */
 
 function timezonecalculator_hide_sections() {
-	for (var i=0;i<timezonecalculator_sections.length;i++) {
-		$('timezonecalculator_'+timezonecalculator_sections[i]).style.display="none";
-		$('timezonecalculator_'+timezonecalculator_sections[i]+'_link').className="";
+	for (var i=0; i<timezonecalculator_sections.length; i++) {
+		jQuery('#timezonecalculator_'+timezonecalculator_sections[i]+'_link').removeClass('current');
+		jQuery('#timezonecalculator_'+timezonecalculator_sections[i]).css('display', 'none');
 	}
 }
 
@@ -30,7 +30,7 @@ function timezonecalculator_open_section(section) {
 	if (my_section.length===0)
 		my_section=timezonecalculator_sections[0];
 
-	$('timezonecalculator_'+my_section).style.display="block";
-	$('timezonecalculator_'+my_section+'_link').className="current";
-	$('timezonecalculator_section').value=my_section;
+	jQuery('#timezonecalculator_'+my_section).css('display', 'block');
+	jQuery('#timezonecalculator_'+my_section+'_link').addClass('current');
+	jQuery('#timezonecalculator_section').val(my_section);
 }

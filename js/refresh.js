@@ -26,7 +26,7 @@ function timezonecalculator_refresh(params, query_params) {
 		url: timezonecalculator_refresh_settings.ajax_url,
 		cache: false,
 		type: 'POST',
-		data: timezonecalculator_hashtable_to_querystring(query_params),
+		data: query_params.toQueryString(),
 		dataType: 'json',
 
 		beforeSend: function(XMLHttpRequest) {
@@ -34,7 +34,7 @@ function timezonecalculator_refresh(params, query_params) {
 			XMLHttpRequest.query_params=query_params;
 
 			if (params.containsKey('callback_init') && params.get('callback_init')!==null) {
-				var callback_init_function = params.get('callback_init');
+				var callback_init_function=params.get('callback_init');
 				window[callback_init_function()];
 			}
 		},
@@ -46,12 +46,12 @@ function timezonecalculator_refresh(params, query_params) {
 				if (!timezonecalculator_is_undefined(json._ajax_nonce) && json._ajax_nonce!==null && json._ajax_nonce.length)
 					XMLHttpRequest.query_params.put('_ajax_nonce', json._ajax_nonce);
 
-				var blocks = new jQuery();
+				var blocks=new jQuery();
 
 				if (XMLHttpRequest.params.containsKey('fields') && XMLHttpRequest.params.get('fields')!==null && XMLHttpRequest.params.get('fields').length)
 					blocks=jQuery(XMLHttpRequest.params.get('fields'));
 
-				var field = new jQuery();
+				var field=new jQuery();
 
 				if (XMLHttpRequest.params.containsKey('field') && XMLHttpRequest.params.get('field')!==null && XMLHttpRequest.params.get('field').length)
 					field=jQuery('#'+XMLHttpRequest.params.get('field'));
@@ -72,7 +72,7 @@ function timezonecalculator_refresh(params, query_params) {
 
 			catch(error) {
 				if (XMLHttpRequest.params.containsKey('callback_error') && XMLHttpRequest.params.get('callback_error')!==null) {
-					var callback_error_function = XMLHttpRequest.params.get('callback_error');
+					var callback_error_function=XMLHttpRequest.params.get('callback_error');
 					window[callback_error_function(error)];
 				}
 			}
@@ -80,14 +80,14 @@ function timezonecalculator_refresh(params, query_params) {
 
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 			if (XMLHttpRequest.params.containsKey('callback_error') && XMLHttpRequest.params.get('callback_error')!==null) {
-				var callback_error_function = XMLHttpRequest.params.get('callback_error');
+				var callback_error_function=XMLHttpRequest.params.get('callback_error');
 				window[callback_error_function(-4)];
 			}
 		},
 
 		complete: function(XMLHttpRequest, textStatus) {
 			if (XMLHttpRequest.params.containsKey('callback_finished') && XMLHttpRequest.params.get('callback_finished')!==null) {
-				var callback_finished_function = XMLHttpRequest.params.get('callback_finished');
+				var callback_finished_function=XMLHttpRequest.params.get('callback_finished');
 
 				var json;
 
@@ -107,7 +107,7 @@ function timezonecalculator_refresh(params, query_params) {
 }
 
 function timezonecalculator_refresh_create_params(field, compare_string) {
-	var params = new Hashtable();
+	var params=new Hashtable();
 
 	params.put('compare_string', compare_string);
 	params.put('field', field);
@@ -116,7 +116,7 @@ function timezonecalculator_refresh_create_params(field, compare_string) {
 }
 
 function timezonecalculator_refresh_create_query_params_basis(_ajax_nonce, query_string) {
-	var query_params = new Hashtable();
+	var query_params=new Hashtable();
 
 	query_params.put('_ajax_nonce', _ajax_nonce);
 	query_params.put('query_string', query_string);
@@ -125,7 +125,7 @@ function timezonecalculator_refresh_create_query_params_basis(_ajax_nonce, query
 }
 
 function timezonecalculator_refresh_create_query_params_output(_ajax_nonce, query_string) {
-	var query_params = timezonecalculator_refresh_create_query_params_basis(_ajax_nonce, query_string);
+	var query_params=timezonecalculator_refresh_create_query_params_basis(_ajax_nonce, query_string);
 
 	query_params.put('action', 'timezonecalculator_output');
 
@@ -151,28 +151,12 @@ check if variable is undefined
 */
 
 function timezonecalculator_is_undefined(myvar) {
-	return (myvar === undefined);
+	return (myvar===undefined);
 }
 
-/*
-converts jshashtable to querystring
-format key_1=value_1&key_n=value_n
-*/
+var timezonecalculator_params=new Hashtable();
 
-function timezonecalculator_hashtable_to_querystring(hashtable) {
-	var result="";
-	var keys = hashtable.keys();
-
-	for (var i=0; i<keys.length; i++) {
-		result+= encodeURIComponent(keys[i])+"="+encodeURIComponent(hashtable.get(keys[i]))+"&";
-	}
-
-	return result.substring(0, result.length-1);
-}
-
-var timezonecalculator_params = new Hashtable();
-
-var timezonecalculator_query_params = new Hashtable();
+var timezonecalculator_query_params=new Hashtable();
 
 jQuery(window).load(function(){
 	if (jQuery('div.timezonecalculator-refreshable-output').length>0) {
