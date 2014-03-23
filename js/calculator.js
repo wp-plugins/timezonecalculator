@@ -4,6 +4,9 @@ set today's date as default
 
 function timezonecalculator_calculator_set_default_date() {
 	datePickerController.setSelectedDate('timezonecalculator_date', timezonecalculator_get_today_date());
+	jQuery('#timezonecalculator_date').val('now');
+
+	document.activeElement.blur();
 }
 
 /*
@@ -46,22 +49,38 @@ function timezonecalculator_calculator_error_calculation(error) {
 }
 
 /*
+display result container and
+scroll to top of buttons
+*/
+
+function timezonecalculator_calculator_show_results() {
+	jQuery('#timezonecalculator_calculator_results').show();
+
+	if (jQuery('#timezonecalculator_calculator_results').css('float')=='none')
+		jQuery('html, body').animate({
+			scrollTop: jQuery('#timezonecalculator_calculate_time').offset().top-10
+		}, 500);
+}
+
+/*
 calculate_time button
 retrieve timezones via AJAX Call
 
-- display 'none yet...'
+- display results-block
 - disable calculate_time button
 - disable form_reset button
-- display wait-cursor
+- display pre-loader
 */
 
 function timezonecalculator_calculator_calculation() {
-	timezonecalculator_calculator_display_message('none yet&hellip;');
+	timezonecalculator_calculator_display_message('');
 
 	var query_time=jQuery('#timezonecalculator_date').val();
 
 	if (query_time.length<3) {
 		timezonecalculator_calculator_display_message('no date entered!');
+		timezonecalculator_calculator_show_results();
+
 		return;
 	}
 
@@ -74,15 +93,31 @@ function timezonecalculator_calculator_calculation() {
 
 	jQuery('#timezonecalculator_calculate_time').prop('disabled', true);
 	jQuery('#timezonecalculator_form_reset').prop('disabled', true);
-	jQuery('#timezonecalculator_wait_calculator').css('display', 'inline');
+
+	/*
+	@todo: in future versions
+	(after setting min-version to
+	wordpress 3.8)
+	use font-icon
+	*/
+
+	jQuery('#timezonecalculator_calculator_results').css('background-image', 'url(images/wpspin_light.gif)').css('background-repeat', 'no-repeat').css('background-position', 'center center');
+
+	timezonecalculator_calculator_show_results();
 
 	var params = timezonecalculator_refresh_create_params('timezonecalculator_block_'+timezonecalculator_calculator_settings.block_id, '<div id="timezonecalculator_block_'+timezonecalculator_calculator_settings.block_id+'" class="timezonecalculator-output"');
 
 	params.put('callback_finished', timezonecalculator_calculator_after_calculation);
 	params.put('callback_error', timezonecalculator_calculator_error_calculation);
 
-	if (jQuery('#timezonecalculator_hour').prop('selectedIndex')>0 && jQuery('#timezonecalculator_minute').prop('selectedIndex')>0) {
-		query_time+=jQuery('#timezonecalculator_hour').val()+':'+jQuery('#timezonecalculator_minute').val();
+	if (jQuery('#timezonecalculator_hour').prop('selectedIndex')>0) {
+		query_time+=jQuery('#timezonecalculator_hour').val()+':';
+
+		if (jQuery('#timezonecalculator_minute').prop('selectedIndex')>0)
+			query_time+=jQuery('#timezonecalculator_minute').val();
+
+		else
+			query_time+='00';
 	}
 
 	var query_timezone=jQuery('#timezonecalculator_timezone').val();
@@ -107,7 +142,7 @@ function timezonecalculator_calculator_after_calculation() {
 
 	jQuery('#timezonecalculator_calculate_time').prop('disabled', false);
 	jQuery('#timezonecalculator_form_reset').prop('disabled', false);
-	jQuery('#timezonecalculator_wait_calculator').css('display','none');
+	jQuery('#timezonecalculator_calculator_results').css('background', '#FFF');
 }
 
 /*
@@ -115,7 +150,12 @@ reset button
 */
 
 function timezonecalculator_calculator_reset_form() {
-	timezonecalculator_calculator_display_message('none yet&hellip;');
+	if (jQuery('#timezonecalculator_calculator_input').css('float')=='none')
+		jQuery('html, body').animate({
+			scrollTop: jQuery('#timezonecalculator_calculator_input').siblings('h3').offset().top-10
+		}, 500);
+
+	jQuery('#timezonecalculator_calculator_results').hide();
 
 	jQuery('#timezonecalculator_date').val('');
 	jQuery('#timezonecalculator_hour').prop('selectedIndex', 0);
@@ -126,4 +166,56 @@ function timezonecalculator_calculator_reset_form() {
 
 	jQuery('#timezonecalculator_timezone').prop('selectedIndex', 0);
 	timezonecalculator_calculator_set_default_date();
+}
+
+/*
+- adjusts min-height of
+results-container
+
+- behavior of containers
+
+if viewport < 960px for collapsed menu
+and < 1100px for default menu view
+
+- shows section-links only if menu is visible
+
+- hides calculator-page-menu and
+displays only calculator
+
+- adopts width of
+input-container and results-container
+
+if viewport < 440px
+
+*/
+
+function timezonecalculator_resize_calculator_page() {
+	if ((jQuery(window).width()<960 && jQuery('body').hasClass('folded')) || (jQuery(window).width()<1100 && !jQuery('body').hasClass('folded'))) {
+		jQuery('#timezonecalculator_calculator_results').css('min-height', 40);
+		jQuery('#timezonecalculator_calculator_input, #timezonecalculator_calculator_results').css('float', 'none');
+		jQuery('#timezonecalculator_calculator_input').css('margin-right', '0');
+	}
+
+	else {
+		jQuery('#timezonecalculator_calculator_results').css('min-height', jQuery('#timezonecalculator_calculator_input').height());
+		jQuery('#timezonecalculator_calculator_input, #timezonecalculator_calculator_results').css('float', 'left');
+		jQuery('#timezonecalculator_calculator_input').css('margin-right', '20px');
+	}
+
+	if (jQuery(window).width()<440) {
+		jQuery('.timezonecalculator_section_link').hide();
+		jQuery('.timezonecalculator_section_text').show();
+
+		jQuery('#timezonecalculator_menu').hide();
+		jQuery('#timezonecalculator_content > div').show();
+		jQuery('#timezonecalculator_selected_timezones').hide();
+
+		jQuery('#timezonecalculator_calculator_input, #timezonecalculator_calculator_results').width(jQuery(window).width()-40);
+	}
+
+	else {
+		timezonecalculator_resize_settings_page();
+
+		jQuery('#timezonecalculator_calculator_input, #timezonecalculator_calculator_results').width(400);
+	}
 }

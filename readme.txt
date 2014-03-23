@@ -3,7 +3,7 @@ Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=J6ZGWTZT4M29U
 Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, jquery, bar, admin bar
 Requires at least: 3.3
-Tested up to: 3.8
+Tested up to: 3.9
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -25,7 +25,7 @@ Calculates, displays and automatically updates times and dates in different time
 * fully multisite network compatible
 * clean uninstall
 
-**Fancy on timezones-calculation? - Try the free [JourneyCalculator](http://www.journeycalculator.com/) with its integrated TimeZoneCalculator...**
+**Plan your travels with the free [JourneyCalculator](http://www.journeycalculator.com/) which is based on TimeZoneCalculator.**
 
 Please find the version for WordPress
 
@@ -57,9 +57,9 @@ TimeZoneCalculator uses the [PHP timezones library](http://php.net/manual/en/tim
 
 If any timezone information like offset, abbreviations, etc. appears to be wrong, please leave a message for the PHP guys on [their board](http://php.net/manual/en/timezones.php).
 
-= Why is 'Drag and Drop' not working? Why can't I see the 'Drag and Drop' section? =
+= Why can't I see the 'Drag and Drop' section? =
 
-This section is based on JavaScript. Thus, you have to enable JavaScript in your browser (this is a default setting in modern browsers like [Mozilla Firefox](http://en.wikipedia.org/wiki/Firefox) or [Google Chrome](http://en.wikipedia.org/wiki/Google_Chrome)). TimeZoneCalculator is still fully functional without JavaScript, but you need to customize your timezones manually.
+This section is based on JavaScript. Thus, you have to enable JavaScript in your browser (this is a default setting in modern browsers like [Mozilla Firefox](http://en.wikipedia.org/wiki/Firefox) or [Google Chrome](http://en.wikipedia.org/wiki/Google_Chrome)). TimeZoneCalculator is still fully functional without JavaScript, but you need to customize your timezones manually. If you use a device with a smaller display (e.g. mobile phone), this section will also be hidden.
 
 == Other Notes ==
 
@@ -87,7 +87,7 @@ $params:
 
 - `format_datetime`: default `Y-m-d H:i`
 
-- `timezones`: alternative timezones-array - each array entry has to be a string as described in the Expert Section of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
+- `timezones`: alternative timezones-array - each array entry has to be a string as described in the Expert Settings of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
 
 - `prefer_user_timezones`: prefer user set timezones - if they exist - to global or function call timezones; default is `false`
 
@@ -139,15 +139,6 @@ Invokes `$timezonecalculator->output($params)`. Please note that you have to use
 
 [How-To for filters](http://codex.wordpress.org/Function_Reference/add_filter)
 
-**General Example:**
-
-`function my_timezonecalculator_available_admin_colors($colors=array()) {
-	$colors['custom_scheme'] = array('#14568A', '#14568A', '', '#C3DEF1');
-	return $colors;
-}
-
-add_filter('timezonecalculator_available_admin_colors', 'my_timezonecalculator_available_admin_colors');`
-
 **Available Filters:**
 
 `timezonecalculator_defaults`
@@ -196,16 +187,6 @@ Receives an array whereas each entry represents a date-format. The first date-fo
 
 Receives a string which is used to determine whether to use 12 or 24-hour clock. In case this string contains `a` or `A`, the 12-hour clock will be preferred.
 
-`timezonecalculator_available_admin_colors`
-
-Receives an array which is appended to the default-color schemes of TimeZoneCalculator.
-
-Array-Structure:
-
-- 1 -> border-color
-- 2 -> background-color
-- 4 -> text-color
-
 == Screenshots ==
 
 1. This screenshot shows the Settings/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
@@ -214,7 +195,7 @@ Array-Structure:
 
 3. This screenshot illustrates the clock in the WordPress Admin Bar. - The date/time and display format can be customized.
 
-4. The last picture depicts the Calculator Section in the Tools Menu.
+4. The last picture shows the Calculator Section in the Tools Menu on a mobile phone.
 
 == Upgrade Notice ==
 
@@ -227,6 +208,16 @@ This is a general code clean-up. - Please note that for TimeZoneCalculator v3.00
 This is not only a feature but also a security update. - Thus, I'd strongly recommend all users of TimeZoneCalculator which have at least an environment of WordPress 2.8 or higher and PHP 5 to install this version!
 
 == Changelog ==
+
+= 3.10 =
+
+* implemented responsive web design on settings-page and calculator (thanks for feedback to Alfred Dahlmann, Veronika Grascher and Christian Heiling)
+* removed calls to screen_icon()
+* improved performance
+* extended length of format-parameters to provide space for example for mobile css-classes
+* fixed some bugs (thanks for patches to Robert Koch and Yasen Tenev)
+* removed filter timezonecalculator_available_admin_colors
+* cleaned-up code
 
 = 3.00 =
 

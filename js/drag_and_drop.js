@@ -4,12 +4,12 @@ toggles the visibility of an element
 
 function timezonecalculator_toggle_element(link, element) {
 	if (jQuery('#'+element).css('display')=='none') {
-		jQuery('#'+element).show(500);
+		jQuery('#'+element).show();
 		jQuery(link).attr('alt', 'hide details');
 		jQuery(link).attr('src', jQuery(link).attr('src').replace('arrow_down_blue.png', 'arrow_up_blue.png'));
 	}
 	else {
-		jQuery('#'+element).hide(500);
+		jQuery('#'+element).hide();
 		jQuery(link).attr('alt', 'show details');
 		jQuery(link).attr('src', jQuery(link).attr('src').replace('arrow_up_blue.png', 'arrow_down_blue.png'));
 	}
@@ -344,8 +344,6 @@ function timezonecalculator_populate_drag_and_drop(key) {
 	}
 
 	timezonecalculator_toggle_related_fields(jQuery('#timezonecalculator_edit_use_db_names'), timezonecalculator_edit_name_fields, false);
-
-	jQuery('#timezonecalculator_edit_continent').focus();
 }
 
 /*

@@ -34,3 +34,36 @@ function timezonecalculator_open_section(section) {
 	jQuery('#timezonecalculator_'+my_section+'_link').addClass('current');
 	jQuery('#timezonecalculator_section').val(my_section);
 }
+
+/*
+- shows section-links only if menu is visible
+
+- hides settings-page-menu and
+displays all settings-page-sections
+except drag-and-drop
+
+if viewport < 440px
+*/
+
+function timezonecalculator_resize_settings_page() {
+	if (jQuery(window).width()<440) {
+		if (jQuery('#timezonecalculator_menu').is(':visible')) {
+			jQuery('.timezonecalculator_section_link').hide();
+			jQuery('.timezonecalculator_section_text').show();
+
+			jQuery('#timezonecalculator_menu').hide();
+			jQuery('#timezonecalculator_form_settings > div').show();
+			jQuery('#timezonecalculator_drag_and_drop').hide();
+		}
+	}
+
+	else {
+		if (!jQuery('#timezonecalculator_menu').is(':visible')) {
+			jQuery('.timezonecalculator_section_text').hide();
+			jQuery('.timezonecalculator_section_link').show();
+
+			jQuery('#timezonecalculator_menu').show();
+			timezonecalculator_open_section(jQuery('#timezonecalculator_section').val());
+		}
+	}
+}
