@@ -40,7 +40,7 @@ function timezonecalculator_open_section(section) {
 
 - hides settings-page-menu and
 displays all settings-page-sections
-except drag-and-drop
+except selection_gui
 
 if viewport < 440px
 */
@@ -53,7 +53,7 @@ function timezonecalculator_resize_settings_page() {
 
 			jQuery('#timezonecalculator_menu').hide();
 			jQuery('#timezonecalculator_form_settings > div').show();
-			jQuery('#timezonecalculator_drag_and_drop').hide();
+			jQuery('#timezonecalculator_selection_gui').hide();
 		}
 	}
 

@@ -5,13 +5,13 @@ toggles the visibility of an element
 function timezonecalculator_toggle_element(link, element) {
 	if (jQuery('#'+element).css('display')=='none') {
 		jQuery('#'+element).show();
-		jQuery(link).attr('alt', 'hide details');
-		jQuery(link).attr('src', jQuery(link).attr('src').replace('arrow_down_blue.png', 'arrow_up_blue.png'));
+		jQuery(link).attr('title', 'hide details');
+		jQuery(link).removeClass('dashicons-arrow-down').addClass('dashicons-arrow-up');
 	}
 	else {
 		jQuery('#'+element).hide();
-		jQuery(link).attr('alt', 'show details');
-		jQuery(link).attr('src', jQuery(link).attr('src').replace('arrow_up_blue.png', 'arrow_down_blue.png'));
+		jQuery(link).attr('title', 'show details');
+		jQuery(link).removeClass('dashicons-arrow-up').addClass('dashicons-arrow-down');
 	}
 }
 
@@ -34,7 +34,7 @@ function timezonecalculator_move_element_up(row) {
 	update the lists
 	*/
 
-	timezonecalculator_update_drag_and_drop_lists();
+	timezonecalculator_update_lists();
 }
 
 /*
@@ -56,12 +56,38 @@ function timezonecalculator_move_element_down(row) {
 	update the lists
 	*/
 
-	timezonecalculator_update_drag_and_drop_lists();
+	timezonecalculator_update_lists();
+}
+
+/*
+moves an element
+to the other list
+*/
+
+function timezonecalculator_move_element(row) {
+
+	/*
+	move the element to other list
+	*/
+
+	var current=jQuery('#timezonecalculator_timezone_'+row);
+
+	if (current.parent('ul').attr('id')=='timezonecalculator_list_selected')
+		current.appendTo('#timezonecalculator_list_available');
+
+	else if (current.parent('ul').attr('id') =='timezonecalculator_list_available')
+		current.appendTo('#timezonecalculator_list_selected');
+
+	/*
+	update the lists
+	*/
+
+	timezonecalculator_update_lists();
 }
 
 /*
 initializes the
-drag_and_drop lists
+drag and drop lists
 */
 
 function timezonecalculator_initialize_drag_and_drop() {
@@ -88,13 +114,13 @@ function timezonecalculator_initialize_drag_and_drop() {
 	*/
 
 	jQuery('#timezonecalculator_list_selected').on('sortstop sortreceive sortremove', function() {
-		timezonecalculator_update_drag_and_drop_lists();
+		timezonecalculator_update_lists();
 	});
 }
 
 /*
 returns the sorted ids of a
-drag_and_drop list
+timezones list
 */
 
 function timezonecalculator_get_sorted_ids(list) {
@@ -137,12 +163,12 @@ function timezonecalculator_get_sorted_ids(list) {
 }
 
 /*
-sets list height of drag_and_drop list
+sets list height of timezones list
 according to the number of elements
 */
 
 function timezonecalculator_set_list_height(list, sorted_ids) {
-	var element_height=32;
+	var element_height=34;
 
 	/*
 	calculate new list height of list_selected
@@ -161,11 +187,11 @@ function timezonecalculator_set_list_height(list, sorted_ids) {
 }
 
 /*
-drag and drop lists update function
-updates timezones textbox
+timezones lists update function
+updates timezones textarea
 */
 
-function timezonecalculator_update_drag_and_drop_lists() {
+function timezonecalculator_update_lists() {
 
 	/*
 	get sorted ids of
@@ -233,7 +259,7 @@ load selected field in edit panel
 and populate timezone attributes
 */
 
-function timezonecalculator_populate_drag_and_drop(key) {
+function timezonecalculator_populate_list_edit(key) {
 
 	/*
 	reset form
@@ -260,7 +286,7 @@ function timezonecalculator_populate_drag_and_drop(key) {
 	jQuery('#timezonecalculator_timezone_'+key).addClass('timezonecalculator_sortablelist_active');
 
 	/*
-	get entry from drag_and_drop list
+	get entry from timezones list
 	visible value and hidden field
 	*/
 
@@ -493,18 +519,19 @@ function timezonecalculator_change_or_append_entry() {
 
 			/*
 			insert new timezone
-			into drag and drop list
+			into timezones list
 			*/
 
-			var up_arrow='<img class="timezonecalculator_arrowbutton" src="'+timezonecalculator_settings.plugin_url+'arrow_up_blue.png" onclick="timezonecalculator_move_element_up('+next_tag_id+');" alt="move element up" />';
-			var down_arrow='<img class="timezonecalculator_arrowbutton" style="margin-right:20px;" src="'+timezonecalculator_settings.plugin_url+'arrow_down_blue.png" onclick="timezonecalculator_move_element_down('+next_tag_id+');" alt="move element down" />';
+			var up_arrow='<div class="timezonecalculator_dashicons dashicons dashicons-arrow-up" onclick="timezonecalculator_move_element_up('+next_tag_id+');" title="move element up"></div>';
+			var down_arrow='<div class="timezonecalculator_dashicons dashicons dashicons-arrow-down" style="margin-right:5px;" onclick="timezonecalculator_move_element_down('+next_tag_id+');" title="move element down"></div>';
+			var move_arrow='<div class="timezonecalculator_dashicons dashicons dashicons-leftright" style="margin-right:15px;" onclick="timezonecalculator_move_element('+next_tag_id+');" title="move element to other list"></div>';
 
 			var options='<input type="hidden" value="'+ret+'" />';
 
-			var new_element='<li class="timezonecalculator_sortablelist" id="timezonecalculator_timezone_'+next_tag_id+'">'+up_arrow+down_arrow+'<span>'+edit_timezone_id+'</span>'+options+'</li>';
+			var new_element='<li class="timezonecalculator_sortablelist" id="timezonecalculator_timezone_'+next_tag_id+'">'+up_arrow+down_arrow+move_arrow+'<span>'+edit_timezone_id+'</span>'+options+'</li>';
 			jQuery('#timezonecalculator_list_selected').append(new_element);
 
-			jQuery('#timezonecalculator_timezone_'+next_tag_id).click(function(){ timezonecalculator_populate_drag_and_drop(next_tag_id); });
+			jQuery('#timezonecalculator_timezone_'+next_tag_id).click(function(){ timezonecalculator_populate_list_edit(next_tag_id); });
 
 			/*
 			we select the newly
@@ -520,13 +547,13 @@ function timezonecalculator_change_or_append_entry() {
 		to changed values
 		*/
 
-		timezonecalculator_populate_drag_and_drop(selected_entry);
+		timezonecalculator_populate_list_edit(selected_entry);
 
 		/*
-		update drag and drop lists
+		update timezones lists
 		*/
 
-		timezonecalculator_update_drag_and_drop_lists();
+		timezonecalculator_update_lists();
 
 		/*
 		user feedback
@@ -552,7 +579,7 @@ function timezonecalculator_reset_edit_form() {
 	jQuery('#timezonecalculator_edit').find('.error').remove();
 	jQuery('#timezonecalculator_edit_create').prop('disabled', false);
 
-	jQuery('#timezonecalculator_drag_and_drop .timezonecalculator_sortablelist, #timezonecalculator_selected_timezones .timezonecalculator_sortablelist').removeClass('timezonecalculator_sortablelist_active');
+	jQuery('#timezonecalculator_selection_gui .timezonecalculator_sortablelist, #timezonecalculator_selected_timezones .timezonecalculator_sortablelist').removeClass('timezonecalculator_sortablelist_active');
 
 	jQuery('#timezonecalculator_edit_continent').prop('selectedIndex', 0);
 

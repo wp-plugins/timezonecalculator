@@ -90,23 +90,32 @@ iframe.iehack
         }
 
 /* The "button" created beside each input for non-static datePickers */
+a.date-picker-control:before {
+        content: "\f145";
+}
+
 a.date-picker-control:link,
 a.date-picker-control:visited
         {
-        position:relative;
-        /* Moz & FF */
-        display: -moz-inline-stack;
-        border:0 none;
-        padding:0;
-        margin:0 0 0 4px;
-        background:transparent url(../media/cal.png) no-repeat 50% 50%;
-        min-width:24px;
-        line-height:1;
-        cursor:pointer;
-        visibility:visible;
-        text-decoration:none;
-        vertical-align:top;         
+        display: table-cell;
+        width: 28px;
+        height: 28px;
+        -webkit-font-smoothing: antialiased;
+        font-size: 28px;
+        line-height: 1;
+        font-family: "dashicons";
+        text-decoration: inherit;
+        font-weight: normal;
+        font-style: normal;
+        vertical-align: middle;
+        transition: color .1s ease-in 0;
+        text-align: center;
+        padding: 0 5px;
         }
+
+a.dp-disabled:hover {
+        //color: #1C4182;
+}
 
 a.date-picker-control:hover,
 a.date-picker-control:active,
@@ -117,28 +126,18 @@ a.dp-button-active:hover,
 a.dp-button-active:active,
 a.dp-button-active:focus
         {
-        background:transparent url(../media/cal.png) no-repeat 50% 50% !important;
-        opacity:0.7;
         }
 
 /* Feed IE6 the following rule, IE7 should handle the min-width declared above */
 * html a.date-picker-control
         {
-        width:24px;
+        width:28px;
         }
 
 /* IE, Safari & Opera. Seperate CSS rule seems to be required. */
 a.date-picker-control
         {
-        display:inline-block;
-        }
-
-a.date-picker-control span
-        {
-        display:block;
-        width:24px;
-        height:24px;
-        margin:2px;
+        display:table-cell;
         }
 
 /* Default "button" styles */
@@ -339,7 +338,7 @@ div.datePicker table thead th.date-picker-day-header
 /* The "todays date" style */
 div.datePicker table tbody td.date-picker-today
         {
-        background:#fff url(../media/indicator.gif) no-repeat 0 0;
+        background:#F5FAFA;
         color:rgb(100,100,100) !important;
         }
 
@@ -543,13 +542,13 @@ body.fd-drag-active
 	}
 
 	@media screen and (max-width: 782px) {
-		a.date-picker-control span {
-			height: 34px;
+		a.date-picker-control:link, a.date-picker-control:visited, a.date-picker-control {
+			width: 36px;
+			height: 36px;
+			font-size: 36px;
 		}
-	}
 
-	@media screen and (max-width: 310px) {
-		a.date-picker-control span {
-			display: none;
+		a.date-picker-control:link, a.date-picker-control:visited, a.date-picker-control {
+			padding: 0 3px;
 		}
 	}

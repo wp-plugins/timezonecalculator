@@ -2,36 +2,36 @@
 Contributors: neoxx
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=J6ZGWTZT4M29U
 Tags: time, date, timezone, calendar, world clock, clock, travel, widget, sidebar, dashboard, shortcode, multisite, multi-site, ajax, javascript, jquery, bar, admin bar
-Requires at least: 3.3
-Tested up to: 3.9
+Requires at least: 3.8
+Tested up to: 4.0
 Stable tag: trunk
 License: GPLv3 or later
-License URI: http://www.gnu.org/licenses/gpl-3.0.html
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 
 == Description ==
 
-* based on PHP timezones database (please read the [FAQ](http://wordpress.org/plugins/timezonecalculator/faq/) for further information)
-* fully optionpage-configurable
+* based on PHP timezones database (please read the [FAQ](https://wordpress.org/plugins/timezonecalculator/faq/) for further information)
+* fully settings page configurable with GUI or manually
 * easy to integrate (ships with multi/sidebar- and dashboard-widget functionality)
 * display clock in WordPress Admin Bar
 * possible to integrate in "Right Now" box or to display as widget on the dashboard and on the user's profile page
 * Calculator section in Tools-Menu with individual timezone-selection for every user
 * optional Ajax refresh with jQuery
-* fully compatible with [https/SSL/TLS-sites](http://codex.wordpress.org/Administration_Over_SSL)
-* drag and drop admin menu page
-* [API for developers](http://wordpress.org/plugins/timezonecalculator/other_notes/)
+* fully compatible with [https/SSL/TLS-sites](https://codex.wordpress.org/Administration_Over_SSL)
+* [API for developers](https://wordpress.org/plugins/timezonecalculator/other_notes/)
 * fully multisite network compatible
 * clean uninstall
 
-**Plan your travels with the free [JourneyCalculator](http://www.journeycalculator.com/) which is based on TimeZoneCalculator.**
+**Plan your travels with the free [JourneyCalculator](https://www.journeycalculator.com/) which is based on TimeZoneCalculator.**
 
 Please find the version for WordPress
 
-* 3.3 and higher [here](http://downloads.wordpress.org/plugin/timezonecalculator.zip)
-* 2.8 to 3.2 [here](http://downloads.wordpress.org/plugin/timezonecalculator.wordpress2.8-3.2.zip)
-* 1.5 to 2.7 [here](http://downloads.wordpress.org/plugin/timezonecalculator.wordpress1.5-2.7.zip)
+* 3.8 and higher [here](https://downloads.wordpress.org/plugin/timezonecalculator.zip)
+* 3.3 to 3.7 [here](https://downloads.wordpress.org/plugin/timezonecalculator.wordpress3.3-3.7.zip)
+* 2.8 to 3.2 [here](https://downloads.wordpress.org/plugin/timezonecalculator.wordpress2.8-3.2.zip)
+* 1.5 to 2.7 [here](https://downloads.wordpress.org/plugin/timezonecalculator.wordpress1.5-2.7.zip)
 
 **Plugin's website:** [http://www.bernhard-riedl.com/projects/](http://www.bernhard-riedl.com/projects/)
 
@@ -45,7 +45,7 @@ Please find the version for WordPress
 
 3. Navigate to the Settings/TimeZoneCalculator tab and customize the timezones according to your desires.
 
-4. If you have widget functionality just drag and drop TimeZoneCalculator on your widget area in the Appearance Menu. Add additional [function and shortcode calls](http://wordpress.org/plugins/timezonecalculator/other_notes/) according to your desires.
+4. If you have widget functionality just drag and drop TimeZoneCalculator on your widget area in the Appearance Menu. Add additional [function and shortcode calls](https://wordpress.org/plugins/timezonecalculator/other_notes/) according to your desires.
 
 5. Be happy and celebrate! (and maybe you want to add a link to [http://www.bernhard-riedl.com/projects/](http://www.bernhard-riedl.com/projects/))
 
@@ -53,13 +53,13 @@ Please find the version for WordPress
 
 = I get the error-message `Fatal error: Class 'DateTimeZone' not found in` [..] =
 
-TimeZoneCalculator uses the [PHP timezones library](http://php.net/manual/en/timezones.php). Thus, please make sure that you have a recent version of PHP including this library installed and enabled.
+TimeZoneCalculator uses the [PHP timezones library](https://php.net/manual/en/timezones.php). Thus, please make sure that you have a recent version of PHP including this library installed and enabled.
 
-If any timezone information like offset, abbreviations, etc. appears to be wrong, please leave a message for the PHP guys on [their board](http://php.net/manual/en/timezones.php).
+If any timezone information like offset, abbreviations, etc. appears to be wrong, please leave a message for the PHP guys on [their board](https://php.net/manual/en/timezones.php).
 
-= Why can't I see the 'Drag and Drop' section? =
+= Why can't I see the 'Selection GUI' section? =
 
-This section is based on JavaScript. Thus, you have to enable JavaScript in your browser (this is a default setting in modern browsers like [Mozilla Firefox](http://en.wikipedia.org/wiki/Firefox) or [Google Chrome](http://en.wikipedia.org/wiki/Google_Chrome)). TimeZoneCalculator is still fully functional without JavaScript, but you need to customize your timezones manually. If you use a device with a smaller display (e.g. mobile phone), this section will also be hidden.
+This section is based on JavaScript. Thus, you have to enable JavaScript in your browser (this is a default setting in modern browsers like [Mozilla Firefox](https://en.wikipedia.org/wiki/Firefox) or [Google Chrome](https://en.wikipedia.org/wiki/Google_Chrome)). TimeZoneCalculator is still fully functional without JavaScript, but you need to customize your timezones manually. If you use a device with a smaller display (e.g. mobile phone), this section will also be hidden.
 
 == Other Notes ==
 
@@ -69,15 +69,15 @@ This section is based on JavaScript. Thus, you have to enable JavaScript in your
 
 With TimeZoneCalculator 2.00 and higher you can also realize a html select which displays for example the airtime of your internet radio station or your broadcasts in your users' local time. Another possibility for the usage of the upcoming function is the integration of date, time and timezone information into your travelling blog.
 
-Parameters can either be passed [as an array or a URL query type string (e.g. "display=0&format=0")](http://codex.wordpress.org/Function_Reference/wp_parse_args). Please note that WordPress parses all arguments as strings, thus booleans have to be 0 or 1 if used in query type strings whereas for arrays [real booleans](http://php.net/manual/en/language.types.boolean.php) should be used. - Furthermore you have to break your timezones with \n : `America/New_York;EST;EWT;New York, NY, US;New York, NY, US;0;0\nEurope/Vienna;;;sleep longer in winter;get up earlier to enjoy the sun;1;0` if you want to use different timezones in a query_string. In case you use an array, an array should also be used for the timezones.
+Parameters can either be passed [as an array or a URL query type string (e.g. "display=0&format=0")](https://codex.wordpress.org/Function_Reference/wp_parse_args). Please note that WordPress parses all arguments as strings, thus booleans have to be 0 or 1 if used in query type strings whereas for arrays [real booleans](https://php.net/manual/en/language.types.boolean.php) should be used. - Furthermore you have to break your timezones with \n : `America/New_York;EST;EWT;New York, NY, US;New York, NY, US;0;0\nEurope/Vienna;;;sleep longer in winter;get up earlier to enjoy the sun;1;0` if you want to use different timezones in a query_string. In case you use an array, an array should also be used for the timezones.
 
 **`function $timezonecalculator->output($params=array())`**
 
 $params:
 
-- `query_time`: any unix timestamp (where `-1262304000 <= query_time <= 2145916800`) or any English textual datetime description in the range of `1930-01-01` and `2038-01-01` which can be parsed with [PHP's strtotime function](http://php.net/manual/en/function.strtotime.php); default is set to current UTC
+- `query_time`: any unix timestamp (where `-1262304000 <= query_time <= 2145916800`) or any English textual datetime description in the range of `1930-01-01` and `2038-01-01` which can be parsed with [PHP's strtotime function](https://php.net/manual/en/function.strtotime.php); default is set to current UTC
 
-- `query_timezone`: origin-timezone of `query_time`; you can choose a [PHP timezone_string](http://php.net/manual/en/timezones.php); otherwise `UTC` will be used
+- `query_timezone`: origin-timezone of `query_time`; you can choose a [PHP timezone_string](https://php.net/manual/en/timezones.php); otherwise `UTC` will be used
 
 - `before_list`: default `<ul>`
 
@@ -87,7 +87,7 @@ $params:
 
 - `format_datetime`: default `Y-m-d H:i`
 
-- `timezones`: alternative timezones-array - each array entry has to be a string as described in the Expert Settings of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
+- `timezones`: alternative timezones-array - each array entry has to be a string as described in the Manual Selection Section of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
 
 - `prefer_user_timezones`: prefer user set timezones - if they exist - to global or function call timezones; default is `false`
 
@@ -101,7 +101,7 @@ $params:
 
 - `no_refresh`: If set to true, TimeZoneCalculator will not produce any Ajax-Refresh-code, even if you have enabled the Ajax refresh in the admin menu.
 
-Example for including a world-clock in your [post-template](http://codex.wordpress.org/Theme_Development) (usually single.php or post.php in wp-content/themes) using [WordPress the_date() function](http://codex.wordpress.org/Template_Tags/the_date):
+Example for including a world-clock in your [post-template](https://codex.wordpress.org/Theme_Development) (usually single.php or post.php in wp-content/themes) using [WordPress the_date() function](https://codex.wordpress.org/Template_Tags/the_date):
 
 Find something similar to
 
@@ -119,7 +119,7 @@ This outputs your selected timezones, whereas calculations are based on the time
 
 = Shortcodes =
 
-[How-to for shortcodes](http://codex.wordpress.org/Shortcode_API)
+[How-to for shortcodes](https://codex.wordpress.org/Shortcode_API)
 
 **General Example:**
 
@@ -137,13 +137,13 @@ Invokes `$timezonecalculator->output($params)`. Please note that you have to use
 
 = Filters =
 
-[How-To for filters](http://codex.wordpress.org/Function_Reference/add_filter)
+[How-To for filters](https://codex.wordpress.org/Function_Reference/add_filter)
 
 **Available Filters:**
 
 `timezonecalculator_defaults`
 
-In case you want to set the default parameters globally rather than handing them over on every function call, you can add the [filter](http://codex.wordpress.org/Function_Reference/add_filter) `timezonecalculator_defaults` in for example timezonecalculator.php or your [own customization plugin](http://codex.wordpress.org/Writing_a_Plugin) (recommended).
+In case you want to set the default parameters globally rather than handing them over on every function call, you can add the [filter](https://codex.wordpress.org/Function_Reference/add_filter) `timezonecalculator_defaults` in for example timezonecalculator.php or your [own customization plugin](https://codex.wordpress.org/Writing_a_Plugin) (recommended).
 
 Please note that parameters which you hand over to a function call (`$timezonecalculator->output`) will always override the defaults parameters, even if they have been set by a filter or in the admin menu.
 
@@ -189,7 +189,7 @@ Receives a string which is used to determine whether to use 12 or 24-hour clock.
 
 == Screenshots ==
 
-1. This screenshot shows the Settings/TimeZoneCalculator Tab with the Drag and Drop Section in the Admin Menu.
+1. This screenshot shows the Settings/TimeZoneCalculator Tab with the Selection GUI Section in the Admin Menu.
 
 2. This picture presents the Preview Section of the TimeZoneCalculator Tab in the Admin Menu.
 
@@ -198,6 +198,10 @@ Receives a string which is used to determine whether to use 12 or 24-hour clock.
 4. The last picture shows the Calculator Section in the Tools Menu on a mobile phone.
 
 == Upgrade Notice ==
+
+= 3.20 =
+
+TimeZoneCalculator v3.20 needs at least WordPress 3.8.
 
 = 3.00 =
 
@@ -208,6 +212,18 @@ This is a general code clean-up. - Please note that for TimeZoneCalculator v3.00
 This is not only a feature but also a security update. - Thus, I'd strongly recommend all users of TimeZoneCalculator which have at least an environment of WordPress 2.8 or higher and PHP 5 to install this version!
 
 == Changelog ==
+
+= 3.20 =
+
+* made settings-page retina/hdpi-display ready
+* adopted settings-page to be fully touch-display enabled
+* renamed settings-page sections
+* moved vendor-code to separate directory
+* fixed small potential bug
+* cleaned-up code
+* implemented minor design changes
+* SSLified links
+* added assets/icons
 
 = 3.10 =
 
@@ -260,13 +276,13 @@ This is not only a feature but also a security update. - Thus, I'd strongly reco
 
 = 2.41 =
 
-* fixed a bug with Ajax-update functionality in a SSL-environment. Thanks to huyz who has mentioned this in the forum http://wordpress.org/support/topic/plugin-generalstats-makes-https-call-to-admin-ajax-even-if-site-is-http
+* fixed a bug with Ajax-update functionality in a SSL-environment. Thanks to huyz who has mentioned this in the forum https://wordpress.org/support/topic/plugin-generalstats-makes-https-call-to-admin-ajax-even-if-site-is-http
 * adopted Admin Header Clock to WordPress 3.2 Admin Menu
 
 = 2.40 =
 
 * revised the security model (replaced option `Allow anonymous Ajax Refresh Requests` with `All users can view timezones` and added the option `Capability to view timezones` to define the capability of a certain user to access the timezones)
-* de-coupling of Ajax-refresh-functions and output of `wp_localize_script` (TimeZoneCalculator is now compatible with [WP Minify](http://wordpress.org/plugins/wp-minify/))
+* de-coupling of Ajax-refresh-functions and output of `wp_localize_script` (TimeZoneCalculator is now compatible with [WP Minify](https://wordpress.org/plugins/wp-minify/))
 * small enhancements
 
 = 2.31 =

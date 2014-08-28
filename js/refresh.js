@@ -136,7 +136,7 @@ function timezonecalculator_register_refresh(params, query_params) {
 	window.setInterval(function(){
 			timezonecalculator_refresh(params, query_params);
 		},
-		parseInt(timezonecalculator_refresh_settings.refresh_time*1000, 10)
+		parseInt(timezonecalculator_refresh_settings.refresh_time, 10)*1000
 	);
 }
 

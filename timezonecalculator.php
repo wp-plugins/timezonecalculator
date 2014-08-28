@@ -5,7 +5,7 @@ Plugin Name: TimeZoneCalculator
 Plugin URI: http://www.bernhard-riedl.com/projects/
 Description: Calculates, displays and automatically updates times and dates in different timezones with respect to daylight saving.
 Author: Dr. Bernhard Riedl
-Version: 3.10
+Version: 3.20
 Author URI: http://www.bernhard-riedl.com/
 */
 
@@ -37,7 +37,7 @@ You should have received a copy of the
 GNU General Public License
 along with this program.
 
-If not, see http://www.gnu.org/licenses/.
+If not, see https://www.gnu.org/licenses/.
 */
 
 /*
@@ -132,7 +132,7 @@ class TimeZoneCalculator {
 
 		'debug_mode' => false,
 
-		'section' => 'drag_and_drop'
+		'section' => 'selection_gui'
 	);
 
 	/*
@@ -154,13 +154,13 @@ class TimeZoneCalculator {
 	*/
 
 	private $options_page_sections=array(
-		'drag_and_drop' => array(
-			'nicename' => 'Drag and Drop Layout',
-			'callback' => 'drag_and_drop'
+		'selection_gui' => array(
+			'nicename' => 'Selection GUI',
+			'callback' => 'selection_gui'
 		),
-		'expert' => array(
-			'nicename' => 'Expert Settings',
-			'callback' => 'expert',
+		'manual_selection' => array(
+			'nicename' => 'Manual Selection',
+			'callback' => 'manual_selection',
 			'fields' => array(
 				'timezones' => 'TimeZones'
 			)
@@ -282,7 +282,7 @@ class TimeZoneCalculator {
 		$lang=substr(get_locale(), 0, 2);
 
 		if ($lang!='en') {
-			$maybe_lang_file='js/datepicker/js/lang/'.$lang.'.js';
+			$maybe_lang_file='vendor/datepicker/js/lang/'.$lang.'.js';
 
 			if (file_exists(plugin_dir_path(__FILE__).$maybe_lang_file)) {
 				$unobtrusive_date_picker_widget_pre_conditions[]='unobtrusive_date_picker_widget_lang';
@@ -291,30 +291,30 @@ class TimeZoneCalculator {
 			}
 		}
 
-		wp_register_script('unobtrusive_date_picker_widget', $this->get_plugin_url().'js/datepicker/js/datepicker.js', $unobtrusive_date_picker_widget_pre_conditions, '5.4');
+		wp_register_script('unobtrusive_date_picker_widget', $this->get_plugin_url().'vendor/datepicker/js/datepicker.js', $unobtrusive_date_picker_widget_pre_conditions, '5.4');
 
 		/*
 		jshashtable v3.0 by Tim Down
 		http://www.timdown.co.uk/jshashtable/
 		*/
 
-		wp_register_script('jshashtable', $this->get_plugin_url().'js/jshashtable/hashtable.js', array(), '3.0');
+		wp_register_script('jshashtable', $this->get_plugin_url().'vendor/jshashtable/hashtable.js', array(), '3.0');
 
 		/*
 		TimeZoneCalculator JS
 		*/
 
-		wp_register_script($this->get_prefix().'refresh', $this->get_plugin_url().'js/refresh.js', array('jquery', 'jshashtable'), '3.00');
+		wp_register_script($this->get_prefix().'refresh', $this->get_plugin_url().'js/refresh.js', array('jquery', 'jshashtable'), '3.20');
 
 		wp_register_script($this->get_prefix().'utils', $this->get_plugin_url().'js/utils.js', array('jquery'), '3.00');
 
 		wp_register_script($this->get_prefix().'timezones', $this->get_plugin_url().'js/timezones.js', array('jquery'), '3.10');
 
-		wp_register_script($this->get_prefix().'drag_and_drop', $this->get_plugin_url().'js/drag_and_drop.js', array('jquery', 'jquery-ui-sortable', 'jquery-effects-highlight', $this->get_prefix().'utils', $this->get_prefix().'timezones'), '3.10');
+		wp_register_script($this->get_prefix().'selection_gui', $this->get_plugin_url().'js/selection_gui.js', array('jquery', 'jquery-ui-sortable', 'jquery-effects-highlight', $this->get_prefix().'utils', $this->get_prefix().'timezones'), '3.20');
 
-		wp_register_script($this->get_prefix().'settings_page', $this->get_plugin_url().'js/settings_page.js', array('jquery', $this->get_prefix().'drag_and_drop', $this->get_prefix().'utils'), '3.10');
+		wp_register_script($this->get_prefix().'settings_page', $this->get_plugin_url().'js/settings_page.js', array('jquery', $this->get_prefix().'selection_gui', $this->get_prefix().'utils'), '3.20');
 
-		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('jquery', 'jshashtable', 'unobtrusive_date_picker_widget', $this->get_prefix().'drag_and_drop', $this->get_prefix().'refresh', $this->get_prefix().'timezones', $this->get_prefix().'utils'), '3.10');
+		wp_register_script($this->get_prefix().'calculator', $this->get_plugin_url().'js/calculator.js', array('jquery', 'jshashtable', 'unobtrusive_date_picker_widget', $this->get_prefix().'selection_gui', $this->get_prefix().'refresh', $this->get_prefix().'timezones', $this->get_prefix().'utils'), '3.20');
 	}
 
 	/*
@@ -322,9 +322,9 @@ class TimeZoneCalculator {
 	*/
 
 	function register_styles() {
-		wp_register_style($this->get_prefix().'admin', $this->get_plugin_url().'css/admin.css', array(), '3.10');
+		wp_register_style($this->get_prefix().'admin', $this->get_plugin_url().'css/admin.css', array('dashicons'), '3.20');
 
-		wp_register_style('unobtrusive_date_picker_widget', $this->get_plugin_url().'js/datepicker/css/datepicker.css', array(), '3.10');
+		wp_register_style('unobtrusive_date_picker_widget', $this->get_plugin_url().'vendor/datepicker/css/datepicker.css', array('dashicons'), '3.20');
 	}
 
 	/*
@@ -1501,22 +1501,21 @@ class TimeZoneCalculator {
 		*/
 
 		foreach ($zonen as $zone) {
-			extract($zone);
 
 			/*
 			create continent optgroup
 			and close an open one
 			*/
 
-			if (($selectcontinent!=$continent) && !empty($city)) {
-				$selectcontinent=$continent;
+			if (($selectcontinent!=$zone['continent']) && !empty($zone['city'])) {
+				$selectcontinent=$zone['continent'];
 
 				if ($firstcontinent)
 					$firstcontinent=false;
 				else
 					$timezones.="', ";
 
-				$continents .= '<option value="'.$continent.'">'.$t_continent.'</option>';
+				$continents .= '<option value="'.$zone['continent'].'">'.$zone['t_continent'].'</option>';
 				$timezones.="'";
 			}
 
@@ -1525,12 +1524,12 @@ class TimeZoneCalculator {
 			add entry to list
 			*/
 
-			if (!empty($city)) {
-				if (!empty($subcity)) {
-					$city = $city.'/'.$subcity;
-					$t_city = $t_city.'/'.$t_subcity;
+			if (!empty($zone['city'])) {
+				if (!empty($zone['subcity'])) {
+					$zone['city'] = $zone['city'].'/'.$zone['subcity'];
+					$zone['t_city'] = $zone['t_city'].'/'.$zone['t_subcity'];
 				}
-				$timezones .= '<option value="'.$continent.'/'.$city.'">'.str_replace("'", '&rsquo;', $t_city).'</option>';
+				$timezones .= '<option value="'.$zone['continent'].'/'.$zone['city'].'">'.str_replace("'", '&rsquo;', $zone['t_city']).'</option>';
 			}
 		}
 
@@ -1629,7 +1628,7 @@ class TimeZoneCalculator {
 			/*
 			could we parse the date/time?
 
-			-1 because of http://php.net/manual/en/function.strtotime.php
+			-1 because of https://php.net/manual/en/function.strtotime.php
 			*/
 
 			if ($parsed_date===false || $parsed_date==-1)
@@ -1967,7 +1966,7 @@ class TimeZoneCalculator {
 	*/
 
 	function head_meta() {
-		echo("<meta name=\"".$this->get_nicename()."\" content=\"3.10\"/>\n");
+		echo("<meta name=\"".$this->get_nicename()."\" content=\"3.20\"/>\n");
 	}
 
 	/*
@@ -2075,8 +2074,8 @@ class TimeZoneCalculator {
 		inside of a link, and links are necessary
 		in the admin-bar API
 
-		http://core.trac.wordpress.org/ticket/14772
-		http://core.trac.wordpress.org/ticket/15519
+		https://core.trac.wordpress.org/ticket/14772
+		https://core.trac.wordpress.org/ticket/15519
 		*/
 
 		$wordpress_clock_span=str_replace(array('<div', '</div'), array('<span', '</span'), $wordpress_clock);
@@ -2159,8 +2158,6 @@ class TimeZoneCalculator {
 
 	function settings_print_scripts() {
 		wp_enqueue_script($this->get_prefix().'settings_page');
-
-		wp_localize_script($this->get_prefix().'drag_and_drop', $this->get_prefix().'settings', array('plugin_url' => $this->get_plugin_url()));
 
 		$this->timezone_js_arrays();
 	}
@@ -2964,7 +2961,7 @@ class TimeZoneCalculator {
 	<?php }
 
 	/*
-	settings pages's javascript
+	settings page's javascript
 	*/
 
 	private function settings_page_js($settings_sections, $is_wp_options) { ?>
@@ -3431,7 +3428,7 @@ class TimeZoneCalculator {
 
 		Maybe you also want to <?php if (current_user_can('manage_links') && ((!has_filter('default_option_link_manager_enabled') || get_option( 'link_manager_enabled')))) { ?><a href="link-add.php"><?php } ?>add a link<?php if (current_user_can('manage_links') && ((!has_filter('default_option_link_manager_enabled') || get_option( 'link_manager_enabled')))) { ?></a><?php } ?> to <a target="_blank" href="http://www.bernhard-riedl.com/projects/">http://www.bernhard-riedl.com/projects/</a>.<?php if(strpos($_SERVER['HTTP_HOST'], 'journeycalculator.com')===false) { ?><br /><br />
 
-		Plan your travels with the free <a target="_blank" href="http://www.journeycalculator.com/">JourneyCalculator</a> which is based on TimeZoneCalculator.<?php } ?>
+		Plan your travels with the free <a target="_blank" href="https://www.journeycalculator.com/">JourneyCalculator</a> which is based on TimeZoneCalculator.<?php } ?>
 <br /><br />
 	<?php }
 
@@ -3454,7 +3451,7 @@ class TimeZoneCalculator {
 	function options_page_help() {
 		return "<div class=\"".$this->get_prefix()."wrap\"><ul>
 
-			<li>You can insert new or edit your existing timezone-entries in the ".$this->get_section_link($this->options_page_sections, 'drag_and_drop', 'Drag and Drop Layout Section')." or in the ".$this->get_section_link($this->options_page_sections, 'expert', 'Expert Settings').". Latter section also works without the usage of JavaScript. In any way, new entries are only saved after clicking on <strong>Save Changes</strong>.</li>
+			<li>You can insert new or edit your existing timezone-entries in the ".$this->get_section_link($this->options_page_sections, 'selection_gui', 'Selection GUI Section')." or in the ".$this->get_section_link($this->options_page_sections, 'manual_selection', 'Manual Selection Section').". Latter section also works without the usage of JavaScript. In any way, new entries are only saved after clicking on <strong>Save Changes</strong>.</li>
 
 			<li>Style-customizations can be made in the ".$this->get_section_link($this->options_page_sections, 'format', 'Format Section').".</li>
 
@@ -3464,39 +3461,39 @@ class TimeZoneCalculator {
 
 			<li>Finally, you can publish the previously selected and saved timezones either by adding a <a href=\"widgets.php\">Sidebar Widget</a>, ".$this->get_section_link($this->options_page_sections, 'dashboard', 'Dashboard Widget')." or by enabling the ".$this->get_section_link($this->options_page_sections, 'world_clock', 'World Clock').". Moreover you can display a clock with your WordPress timezone in the ".$this->get_section_link($this->options_page_sections, 'administrative_options', 'Admin Bar').".</li>
 
-			<li><a target=\"_blank\" href=\"http://wordpress.org/plugins/timezonecalculator/other_notes/\">Geek stuff</a>: You can output your timezones-selection by calling the <abbr title=\"PHP: Hypertext Preprocessor\">PHP</abbr> function <code>$".$this->get_prefix(false)."->output(\$params)</code> wherever you like (don't forget <code>global $".$this->get_prefix(false)."</code>). This function can also be invoked by the usage of a shortcode.</li>
+			<li><a target=\"_blank\" href=\"https://wordpress.org/plugins/timezonecalculator/other_notes/\">Geek stuff</a>: You can output your timezones-selection by calling the <abbr title=\"PHP: Hypertext Preprocessor\">PHP</abbr> function <code>$".$this->get_prefix(false)."->output(\$params)</code> wherever you like (don't forget <code>global $".$this->get_prefix(false)."</code>). This function can also be invoked by the usage of a shortcode.</li>
 
 			<li>You can enable the <a href=\"tools.php?page=".$this->get_calculator_tools_page()."\">TimeZone-Calculator</a> for your users or just for yourself in the ".$this->get_section_link($this->options_page_sections, 'calculator', 'Calculator Section').", where you can calculate a certain timestamp in your selected timezones.</li>
 
 			<li>If you decide to uninstall ".$this->get_nicename().", firstly remove the optionally added <a href=\"widgets.php\">Sidebar Widget</a>, integrated <abbr title=\"PHP: Hypertext Preprocessor\">PHP</abbr> function or WordPress shortcode call(s). Afterwards, disable and delete ".$this->get_nicename()." in the <a href=\"plugins.php\">Plugins Tab</a>.</li>
 
-			<li><strong>For more information:</strong><br /><a target=\"_blank\" href=\"http://wordpress.org/plugins/".str_replace('_', '-', $this->get_prefix(false))."/\">".$this->get_nicename()." in the WordPress Plugin Directory</a></li>
+			<li><strong>For more information:</strong><br /><a target=\"_blank\" href=\"https://wordpress.org/plugins/".str_replace('_', '-', $this->get_prefix(false))."/\">".$this->get_nicename()." in the WordPress Plugin Directory</a></li>
 
 		</ul></div>";
 	}
 
 	/*
-	section drag_and_drop
+	section selection_gui
 	*/
 
-	function callback_settings_drag_and_drop() {
-		$this->do_settings_drag_and_drop();
+	function callback_settings_selection_gui() {
+		$this->do_settings_selection_gui();
 	}
 
 	/*
-	function drag_and_drop
+	function selection_gui
 	*/
 
-	function do_settings_drag_and_drop($timezones_array=array()) { ?>
+	function do_settings_selection_gui($timezones_array=array()) { ?>
 		<ul>
 
 			<li>You can insert new timezones by filling  out the TimeZone form and clicking <strong>Insert</strong>.</li>
 
-			<li>To customize existing timezones click on the entry you want to change in the TimeZone Entries form and edit the parameters in the TimeZone form. If you want to adjust the details of a timezone entry, you have to click on the arrow in the TimeZone form. This will open the advanced menu where you can either select to use the abbreviations and names of the timezone database, or manually insert your own descriptions. After clicking <strong>Edit</strong> the selected timezone's parameters will be adopted.</li>
+			<li>To customize existing timezones click on the entry you want to change in the TimeZone Entries form and edit the parameters in the TimeZone form. If you want to adjust the details of a timezone entry, you have to click on the arrow<div class="dashicons dashicons-arrow-down"></div>in the TimeZone form. This will open the advanced menu where you can either select to use the abbreviations and names of the timezone database, or manually insert your own descriptions. After clicking <strong>Edit</strong> the selected timezone's parameters will be adopted.</li>
 
-			<li>To re-order the timezones within a list either use drag and drop or click on the arrows on the left side of the particular timezone.</li>
+			<li>To re-order the timezones within a list either use drag and drop or click on the arrows<div class="dashicons dashicons-arrow-up"></div><div class="dashicons dashicons-arrow-down"></div>on the left side of the particular timezone.</li>
 
-			<li>To remove timezones from the list just drag and drop them into the Garbage Bin.</li>
+			<li>To remove timezones from the list just drag and drop them into the Garbage Bin or click on the double-arrow<div class="dashicons dashicons-leftright"></div>.</li>
 
 			<li>Don't forget to save all your adjustments by clicking on <strong>Save Changes</strong>.</li>
 
@@ -3561,20 +3558,20 @@ class TimeZoneCalculator {
 					arrows
 					*/
 
-					$up_arrow='<img class="'.$this->get_prefix().'arrowbutton" src="'.$this->get_plugin_url().'arrow_up_blue.png" onclick="'.$this->get_prefix().'move_element_up('.$counter.');" alt="move element up" />';
-					$down_arrow='<img class="'.$this->get_prefix().'arrowbutton" style="margin-right:20px;" src="'.$this->get_plugin_url().'arrow_down_blue.png" onclick="'.$this->get_prefix().'move_element_down('.$counter.');" alt="move element down" />';
+					$up_arrow='<div class="'.$this->get_prefix().'dashicons dashicons dashicons-arrow-up" onclick="'.$this->get_prefix().'move_element_up('.$counter.');" title="move element up"></div>';
+					$down_arrow='<div class="'.$this->get_prefix().'dashicons dashicons dashicons-arrow-down" style="margin-right:5px;" onclick="'.$this->get_prefix().'move_element_down('.$counter.');" title="move element down"></div>';
+					$move_arrow='<div class="'.$this->get_prefix().'dashicons dashicons dashicons-leftright" style="margin-right:15px;" onclick="'.$this->get_prefix().'move_element('.$counter.');" title="move element to other list"></div>';
 
 					/*
-					add listener for drag-and-drop
-					edit panel
+					add listener for edit panel
 					*/
 
-					$list_selected_listeners.="jQuery('#".$before_key.$counter."').click(function(){ ".$this->get_prefix()."populate_drag_and_drop('".$counter."') });";
+					$list_selected_listeners.="jQuery('#".$before_key.$counter."').click(function(){ ".$this->get_prefix()."populate_list_edit('".$counter."') });";
 					/*
 					add timezone to list-selected
 					*/
 
-					$list_selected.= $before_tag. '"'.$before_key.$counter.'">'.$up_arrow.$down_arrow.'<span>'.$tag.'</span>'.$otherOptions.$after_tag. "\n";
+					$list_selected.= $before_tag. '"'.$before_key.$counter.'">'.$up_arrow.$down_arrow.$move_arrow.'<span>'.$tag.'</span>'.$otherOptions.$after_tag. "\n";
 
 					$counter++;
 				}
@@ -3638,7 +3635,7 @@ class TimeZoneCalculator {
 
 			<div id="<?php echo($this->get_prefix()); ?>edit_header">
 				<label style="margin-left:1px; font-weight: 600;" for="<?php echo($this->get_prefix()); ?>edit_continent">TimeZone</label>
-				<img style="margin:4px 5px; float:right" class="<?php echo($this->get_prefix()); ?>arrowbutton" src="<?php echo($this->get_plugin_url()); ?>arrow_down_blue.png" alt="show details" onclick="<?php echo($this->get_prefix()); ?>toggle_element(this, '<?php echo($this->get_prefix()); ?>edit_details');" />
+				<div style="margin:4px 3px; float:right" class="<?php echo($this->get_prefix()); ?>dashicons dashicons dashicons-arrow-down" title="show details" onclick="<?php echo($this->get_prefix()); ?>toggle_element(this, '<?php echo($this->get_prefix()); ?>edit_details');"></div>
 			</div>
 
 			<?php $this->setting_timezone($this->get_prefix().'edit_'); ?>
@@ -3684,10 +3681,10 @@ class TimeZoneCalculator {
 
 		?>
 
-		<?php $this->callback_settings_drag_and_drop_js($list_selected_listeners, $edit_abbr_fields, $edit_name_fields);
+		<?php $this->callback_settings_selection_gui_js($list_selected_listeners, $edit_abbr_fields, $edit_name_fields);
 	}
 
-	private function callback_settings_drag_and_drop_js($list_selected_listeners, $edit_abbr_fields, $edit_name_fields) { ?>
+	private function callback_settings_selection_gui_js($list_selected_listeners, $edit_abbr_fields, $edit_name_fields) { ?>
 
 	<script type="text/javascript">
 
@@ -3767,17 +3764,17 @@ class TimeZoneCalculator {
 	<?php }
 
 	/*
-	section expert
+	section manual_selection
 	*/
 
-	function callback_settings_expert() { ?>
-		In this section you can adopt your timezones-selection 'by hand'. Changes you make here are only reflected in the <?php echo($this->get_section_link($this->options_page_sections, 'drag_and_drop', 'Drag and Drop Section')); ?> after clicking on <strong>Save Changes</strong>.<br /><br />
+	function callback_settings_manual_selection() { ?>
+		In this section you can adopt your timezones-selection 'by hand'. Changes you make here are only reflected in the <?php echo($this->get_section_link($this->options_page_sections, 'selection_gui', 'Selection GUI Section')); ?> after clicking on <strong>Save Changes</strong>.<br /><br />
 
 		All parameters need to be separated by a semicolon. Please note, that only the <em>timezone_id</em> is mandatory.
 
 		<h3>Syntax</h3>
 		<ul>
-			<li><a target="_blank" href="http://php.net/manual/en/timezones.php">timezone_id</a>;</li>
+			<li><a target="_blank" href="https://php.net/manual/en/timezones.php">timezone_id</a>;</li>
 			<li>abbreviation_standard;</li>
 			<li>abbreviation_daylightsaving;</li>
 			<li>name_standard;</li>
@@ -3801,8 +3798,8 @@ class TimeZoneCalculator {
 
 		<h3>Infos about TimeZones</h3>
 		<ul>
-			<li><a target="_blank" href="http://php.net/manual/en/timezones.php">php.net</a></li>
-			<li><a target="_blank" href="http://en.wikipedia.org/wiki/Timezones">wikipedia.org</a></li>
+			<li><a target="_blank" href="https://php.net/manual/en/timezones.php">php.net</a></li>
+			<li><a target="_blank" href="https://en.wikipedia.org/wiki/Timezones">wikipedia.org</a></li>
 		</ul>
 	<?php }
 
@@ -3828,7 +3825,7 @@ class TimeZoneCalculator {
 				<li><em>%datetime</em></li></ul>
 			</li>
 
-			<li>You can customize the <em>Format of Date/Time</em> by using standard <abbr title="PHP: Hypertext Preprocessor">PHP</abbr> syntax. The default format is <em>yyyy-mm-dd hh:mm</em> which looks like <em>Y-m-d H:i</em> in <abbr title="PHP: Hypertext Preprocessor">PHP</abbr>. - For details please refer to the WordPress <a target="_blank" href="http://codex.wordpress.org/Formatting_Date_and_Time"> Documentation on date and time formatting</a>.</li>
+			<li>You can customize the <em>Format of Date/Time</em> by using standard <abbr title="PHP: Hypertext Preprocessor">PHP</abbr> syntax. The default format is <em>yyyy-mm-dd hh:mm</em> which looks like <em>Y-m-d H:i</em> in <abbr title="PHP: Hypertext Preprocessor">PHP</abbr>. - For details please refer to the WordPress <a target="_blank" href="https://codex.wordpress.org/Formatting_Date_and_Time"> Documentation on date and time formatting</a>.</li>
 
 			<li>In case you do not need a container, you can disable the option <em>Wrap output in div-container</em>.</li>
 
@@ -3902,7 +3899,7 @@ class TimeZoneCalculator {
 	*/
 
 	function callback_settings_dashboard() { ?>
-		If you enable one of the next options, <?php echo($this->get_nicename()); ?> will show your timezones either as a <a href="index.php">Dashboard Widget</a> or in the Right-Now-Box on the <a href="index.php">Dashboard</a>. You can also choose the necessary <a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">capability</a>.
+		If you enable one of the next options, <?php echo($this->get_nicename()); ?> will show your timezones either as a <a href="index.php">Dashboard Widget</a> or in the Right-Now-Box on the <a href="index.php">Dashboard</a>. You can also choose the necessary <a target="_blank" href="https://codex.wordpress.org/Roles_and_Capabilities">capability</a>.
 	<?php }
 
 	function setting_dashboard_widget($params=array()) {
@@ -3926,7 +3923,7 @@ class TimeZoneCalculator {
 	*/
 
 	function callback_settings_calculator() { ?>
-		In this section you can select which <a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">capability</a> is necessary to enable the timezone-calculator in the <a href="tools.php?page=<?php echo($this->get_calculator_tools_page()); ?>">tools-menu</a>.
+		In this section you can select which <a target="_blank" href="https://codex.wordpress.org/Roles_and_Capabilities">capability</a> is necessary to enable the timezone-calculator in the <a href="tools.php?page=<?php echo($this->get_calculator_tools_page()); ?>">tools-menu</a>.
 	<?php }
 
 	function setting_calculator_capability($params=array()) {
@@ -3939,7 +3936,7 @@ class TimeZoneCalculator {
 
 	function callback_settings_world_clock() { ?>
 		<ul>
-			<li>The <a href="tools.php?page=<?php echo($this->get_calculator_tools_page()); ?>">user's timezones-selection</a> (or as fallback <?php echo($this->get_section_link($this->options_page_sections, 'drag_and_drop', 'the global timezones-selection')); ?> can be added as submenu of Tools. You can select which <a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">capability</a> is necessary for your users to be able to access the world clock.</li>
+			<li>The <a href="tools.php?page=<?php echo($this->get_calculator_tools_page()); ?>">user's timezones-selection</a> (or as fallback <?php echo($this->get_section_link($this->options_page_sections, 'selection_gui', 'the global timezones-selection')); ?> can be added as submenu of Tools. You can select which <a target="_blank" href="https://codex.wordpress.org/Roles_and_Capabilities">capability</a> is necessary for your users to be able to access the world clock.</li>
 			<li>Furthermore, it can also be included on the <a href="profile.php">user's profile page</a>, if you enable <em>Display user selected timezones (world clock) on user profile page</em>.</li>
 		</ul>
 	<?php }
@@ -3967,9 +3964,9 @@ class TimeZoneCalculator {
 
 			<li><a href="options-general.php">Your local WordPress Date/Time</a> can be displayed in the Admin Bar if you enable <em>Display WordPress Clock in Admin Bar</em>.</li>
 
-			<li>If you want to keep the timezones as a secret, you can deactivate <em>All users can view timezones</em>. In that case, only users with the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones</em> can access this information.</li>
+			<li>If you want to keep the timezones as a secret, you can deactivate <em>All users can view timezones</em>. In that case, only users with the <em><a target="_blank" href="https://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones</em> can access this information.</li>
 
-			<li>As it may be a privacy invasion to provide someone with access to a certain user's timezones-selection, you can define in addition the <em><a target="_blank" href="http://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones-selection of other users</em>. In others words, if Alice wants to access Bob's timezones-selection, she needs to have both of the mentioned capabilities.</li>
+			<li>As it may be a privacy invasion to provide someone with access to a certain user's timezones-selection, you can define in addition the <em><a target="_blank" href="https://codex.wordpress.org/Roles_and_Capabilities">Capability</a> to view timezones-selection of other users</em>. In others words, if Alice wants to access Bob's timezones-selection, she needs to have both of the mentioned capabilities.</li>
 
 			<li>The <em>Debug Mode</em> can be used to have a look on the actions undertaken by <?php echo($this->get_nicename()); ?> and to investigate unexpected behaviour.</li>
 		</ul>
@@ -4006,7 +4003,7 @@ class TimeZoneCalculator {
 	*/
 
 	function callback_settings_preview() { ?>
-		You can publish this output either by adding a <a href="widgets.php">Sidebar Widget</a>, <?php echo($this->get_section_link($this->options_page_sections, 'dashboard', 'Dashboard Widget')); ?> or by calling the <abbr title="PHP: Hypertext Preprocessor">PHP</abbr> function <code>$<?php echo($this->get_prefix(false)); ?>->output($params)</code> (optionally with several parameters as described in the <a target="_blank" href="http://wordpress.org/plugins/<?php echo($this->get_prefix(false)); ?>/other_notes/">Other Notes</a>) after calling <code>global $<?php echo($this->get_prefix(false)); ?></code> wherever you like.<br /><br />
+		You can publish this output either by adding a <a href="widgets.php">Sidebar Widget</a>, <?php echo($this->get_section_link($this->options_page_sections, 'dashboard', 'Dashboard Widget')); ?> or by calling the <abbr title="PHP: Hypertext Preprocessor">PHP</abbr> function <code>$<?php echo($this->get_prefix(false)); ?>->output($params)</code> (optionally with several parameters as described in the <a target="_blank" href="https://wordpress.org/plugins/<?php echo($this->get_prefix(false)); ?>/other_notes/">Other Notes</a>) after calling <code>global $<?php echo($this->get_prefix(false)); ?></code> wherever you like.<br /><br />
 
 		<?php
 		$params=array(
@@ -4028,7 +4025,7 @@ class TimeZoneCalculator {
 	function callback_calculator_intro() { ?>
 		Welcome to your personal timezone calculator. Schedule a conference call or just keep track of your friends around the globe. Please specify your date/time of interest and let it be displayed in the <?php echo($this->get_section_link($this->options_page_sections, 'selected_timezones', 'pre-selected timezones')); ?>. 
 
-		<div id="<?php echo($this->get_prefix()); ?>general_error" class="error" style="margin-top:40px">Sorry, you need to have <a target="_blank" href="http://en.wikipedia.org/wiki/JavaScript">JavaScript</a> enabled in order to use this section.</div>
+		<div id="<?php echo($this->get_prefix()); ?>general_error" class="error" style="margin-top:40px">Sorry, you need to have <a target="_blank" href="https://en.wikipedia.org/wiki/JavaScript">JavaScript</a> enabled in order to use this section.</div>
 
 		<script type="text/javascript">
 
@@ -4053,7 +4050,7 @@ class TimeZoneCalculator {
 		$time_format=apply_filters($this->get_prefix().'calculator_format_time',  $this->get_default('format_datetime'));
 		?>
 
-		Choose your current timezone, then pick your date/time in the calendar/drop-down or enter it manually in the date field by using one of these formats: <a target="_blank" href="http://www.w3.org/QA/Tips/iso-date">ISO (yyyy-mm-dd)</a>, <a target="_blank" href="http://en.wikipedia.org/wiki/Calendar_date#Gregorian.2C_month-day-year">US (mm/dd/yyyy)</a> or <a target="_blank" href="http://www.php.net/manual/en/function.strtotime.php">any English textual datetime description</a> (tomorrow 3 pm or 2009-04-23 16:30). Let's start!<br /><br />
+		Choose your current timezone, then pick your date/time in the calendar/drop-down or enter it manually in the date field by using one of these formats: <a target="_blank" href="http://www.w3.org/QA/Tips/iso-date">ISO (yyyy-mm-dd)</a>, <a target="_blank" href="https://en.wikipedia.org/wiki/Calendar_date#Gregorian.2C_month-day-year">US (mm/dd/yyyy)</a> or <a target="_blank" href="https://www.php.net/manual/en/function.strtotime.php">any English textual datetime description</a> (tomorrow 3 pm or 2009-04-23 16:30). Let's start!<br /><br />
 
 		<div id="<?php echo($this->get_prefix()); ?>calculator_input" style="margin-right:20px">
 			<div class="<?php echo($this->get_prefix()); ?>calculator_row">
@@ -4069,8 +4066,10 @@ class TimeZoneCalculator {
 				<div class="<?php echo($this->get_prefix()); ?>calculator_input_header">
 					<strong>Date</strong>
 				</div>
-				<div class="<?php echo($this->get_prefix()); ?>calculator_input_content">
-					<?php $this->setting_date($this->get_prefix(), false, $date_format); ?>
+				<div class="<?php echo($this->get_prefix()); ?>calculator_input_content" style="display:table; width:100%">
+					<div style="display:table-row;">
+						<?php $this->setting_date($this->get_prefix(), false, $date_format); ?>
+					</div>
 				</div>
 			</div>
 
@@ -4091,8 +4090,6 @@ class TimeZoneCalculator {
 		</div>
 
 		<div id="<?php echo($this->get_prefix()); ?>calculator_results" style="display:none">
-
-		<strong>Results</strong>
 
 		<?php
 
@@ -4139,6 +4136,8 @@ class TimeZoneCalculator {
 		<script type="text/javascript">
 
 		/* <![CDATA[ */
+
+		jQuery('#fd-but-timezonecalculator_date span').first().remove();
 
 		<?php echo($this->get_prefix()); ?>calculator_settings.block_id=<?php echo("'".$block_id."'"); ?>;
 
@@ -4211,7 +4210,7 @@ class TimeZoneCalculator {
 		if (!is_array($timezones_array) || empty($timezones_array))
 			$timezones_array=$this->get_default('timezones');
 
-		$this->do_settings_drag_and_drop($timezones_array);
+		$this->do_settings_selection_gui($timezones_array);
 		?>
 
 		<form method="post" action="<?php echo(admin_url('tools.php')); ?>?page=<?php echo($this->get_calculator_tools_page()); ?>">
@@ -4228,7 +4227,8 @@ class TimeZoneCalculator {
 			'reset' => 'Default'
 		);
 
-		foreach ($submit_buttons as $key => $submit_button) 				$this->setting_submit_button($key, $submit_button);
+		foreach ($submit_buttons as $key => $submit_button)
+				$this->setting_submit_button($key, $submit_button);
 		?>
 		</p>
 
@@ -4244,9 +4244,9 @@ class TimeZoneCalculator {
 
 	$params:
 
-	- `query_time`: any unix timestamp (where `-1262304000 <= query_time <= 2145916800`) or any English textual datetime description in the range of `1930-01-01` and `2038-01-01` which can be parsed with [PHP's strtotime function](http://php.net/manual/en/function.strtotime.php); default is set to current UTC
+	- `query_time`: any unix timestamp (where `-1262304000 <= query_time <= 2145916800`) or any English textual datetime description in the range of `1930-01-01` and `2038-01-01` which can be parsed with [PHP's strtotime function](https://php.net/manual/en/function.strtotime.php); default is set to current UTC
 
-	- `query_timezone`: origin-timezone of `query_time`; you can choose a [PHP timezone_string](http://php.net/manual/en/timezones.php); otherwise `UTC` will be used
+	- `query_timezone`: origin-timezone of `query_time`; you can choose a [PHP timezone_string](https://php.net/manual/en/timezones.php); otherwise `UTC` will be used
 
 	- `before_list`: default `<ul>`
 
@@ -4256,7 +4256,7 @@ class TimeZoneCalculator {
 
 	- `format_datetime`: default `Y-m-d H:i`
 
-	- `timezones`: alternative timezones-array - each array entry has to be a string as described in the Expert Settings of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
+	- `timezones`: alternative timezones-array - each array entry has to be a string as described in the Manual Selection Section of the Admin Menu; default is the timezones-entries array which can be modified in the Admin Menu
 
 	- `prefer_user_timezones`: prefer user set timezones - if they exist - to global or function call timezones; default is `false`
 
@@ -4689,8 +4689,6 @@ class WP_Widget_TimeZoneCalculator extends WP_Widget {
 	function widget($args, $instance) {
 		global $timezonecalculator;
 
-		extract($args);
-
 		$title = !isset($instance['title']) ? '' : apply_filters('widget_title', $instance['title']);
 
 		$prefer_user_timezones=false;
@@ -4709,12 +4707,12 @@ class WP_Widget_TimeZoneCalculator extends WP_Widget {
 		if (empty($timezones))
 			return;
 
-		echo $before_widget;
-		echo $before_title . $title . $after_title;
+		echo $args['before_widget'];
+		echo $args['before_title'] . $title . $args['after_title'];
 
 		echo $timezones;
 
-		echo $after_widget;
+		echo $args['after_widget'];
 	}
 
 	/*

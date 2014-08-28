@@ -84,10 +84,8 @@ ul.timezonecalculator_sortablelist {
 	margin: 15px 0px 5px 1px;
 }
 
-img.timezonecalculator_arrowbutton {
-	vertical-align: bottom;
+.timezonecalculator_dashicons {
 	cursor: pointer;
-	margin-left: 5px;
 }
 
 #timezonecalculator_edit_details td {
@@ -123,19 +121,19 @@ img.timezonecalculator_arrowbutton {
 }
 
 #timezonecalculator_date {
-	width: 90%;
+	line-height: 20px;
+	width: 98%;
+	display: table-cell;
 }
 
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 782px) {
 	#timezonecalculator_date {
-		width: 85%;
+		line-height: 23px;
 	}
 }
 
-@media screen and (max-width: 310px) {
-	#timezonecalculator_date {
-		width: 98%;
-	}
+#timezonecalculator_calculator_results .timezonecalculator-output ul {
+	padding: 0px 5px 5px 30px
 }
 
 #timezonecalculator_continent, #timezonecalculator_timezone {
@@ -150,7 +148,7 @@ div.datePicker table {
 	margin-right: 15px;
 }
 
-#timezonecalculator_drag_and_drop, #timezonecalculator_calculator, #timezonecalculator_selected_timezones {
+#timezonecalculator_selection_gui, #timezonecalculator_calculator, #timezonecalculator_selected_timezones {
 	display: none;
 }
 
@@ -190,4 +188,49 @@ div.datePicker table {
 	text-shadow: 0px 1px 1px white;
 
 	font: italic bold 14px/24px helvetica, arial;
+}
+
+@-webkit-keyframes timezonecalculator_anim_rotate {
+	0% {
+		-webkit-transform: rotate(0);
+	}
+	100% {
+		-webkit-transform: rotate(360deg);
+	}
+}
+
+@-moz-keyframes timezonecalculator_anim_rotate {
+	0% {
+		-moz-transform: rotate(0);
+	}
+	100% {
+		-moz-transform: rotate(360deg);
+	}
+}
+
+@keyframes timezonecalculator_anim_rotate {
+	0% {
+		transform: rotate(0);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.timezonecalculator_spinner:before {
+	content: "\f463";
+}
+
+#timezonecalculator_content .timezonecalculator_spinner {
+	display: inline-block;
+	font-family: dashicons;
+	font-size: 40px;
+	margin: 0;
+	-webkit-animation: timezonecalculator_anim_rotate 2.5s infinite linear;
+	-moz-animation: timezonecalculator_anim_rotate 2.5s infinite linear;
+	animation: timezonecalculator_anim_rotate 2.5s infinite linear;
+	color: #AAA;
+	text-shadow: 0 0 .25em rgba(255,255,255,.3);
+	padding: 0;
+	position: relative;
 }
